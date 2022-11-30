@@ -73,24 +73,25 @@ p {
     margin-left: 0.5em;
 }
 
-.achievment {
+.achievement {
     position: fixed;
-    bottom: -5em;
+    bottom: -7em;
     transition: 0.5s;
     right: 0px;
     background-color: #404040;
     min-width: 8em;
+    max-width: 10em;
     max-height: 5em;
     min-height: 3em;
     padding: 1em;
 }
 
-.achievment .achievmentMsg {
+.achievement .achievementMsg {
     font-size: smaller;
     margin: 0px;
 }
 
-.achievment .achievmentUnlocked {
+.achievement .achievementUnlocked {
     font-size: x-small;
     color: olivedrab;
 }
