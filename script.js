@@ -58,7 +58,9 @@ function showAchievement(type) {
 
     document.querySelector(".achievement").style.bottom = "0";
 
-    setTimeout(() => document.querySelector(".achievement").style.bottom = "-7em", 3000);
+    setTimeout(() =>
+        document.querySelector(".achievement").style.bottom = "-7em", 3000
+    );
 }
 
 // set smooth scrolling on links
