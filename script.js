@@ -29,8 +29,8 @@ let unlocked = { "lol": false };
 function showAchievement(type) {
     if (unlocked[type])
         return;
-    let name = "Name";
-    let msg = "Msg";
+    let name = "Hacked it!";
+    let msg = "Playing with the console, are we?";
     unlocked[type] = true;
     switch (type)
     {
@@ -45,6 +45,11 @@ function showAchievement(type) {
         case "allLinks":
             name = "Click on everything!";
             msg = "Click on every link in contents";
+            break;
+        default:
+            if (unlocked["lol"])
+                return;
+            unlocked["lol"] = true;
             break;
     }
 
