@@ -1,0 +1,96 @@
+/* Hide scrollbar for Chrome, Safari and Opera */
+html::-webkit-scrollbar {
+    display: none;
+}
+
+.construction {
+    color: #dddd33;
+    font-size: 2.5em;
+    text-align: center;
+}
+
+.wrapper {
+    min-height: 100vh;
+    padding-top: 10px;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+html {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+body {
+    background-color: #303030;
+    color: lightgray;
+}
+
+a {
+    color: #dddd33;
+}
+
+button {
+    background-color: #404040;
+    color: lightgray;
+}
+
+section {
+    max-width: 600px;
+    margin: auto;
+    margin-bottom: 40px;
+}
+
+h1 {
+    font-size: xx-large;
+}
+
+p {
+    font-size: larger;
+}
+
+.goUp {
+    position: fixed;
+    font-size: large;
+    bottom: -3em;
+    transition: 0.5s;
+    max-height: 3em;
+    right: 20vw;
+}
+
+.cookies {
+    position: fixed;
+    transition: 0.5s;
+    left: 10px;
+    bottom: -5em;
+    max-height: 5em;
+    margin-right: 10px;
+    background-color: #404040;
+    display: flex;
+    padding: 0.5em;
+}
+
+.cookies button {
+    margin-left: 0.5em;
+}
+
+.achievment {
+    position: fixed;
+    bottom: -5em;
+    transition: 0.5s;
+    right: 0px;
+    background-color: #404040;
+    min-width: 8em;
+    max-height: 5em;
+    min-height: 3em;
+    padding: 1em;
+}
+
+.achievment .achievmentMsg {
+    font-size: smaller;
+    margin: 0px;
+}
+
+.achievment .achievmentUnlocked {
+    font-size: x-small;
+    color: olivedrab;
+}
