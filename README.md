@@ -1,5 +1,5 @@
 # Portfolio
-This is my personal website currently online at [here](https://bonnyad9.github.io).
+This is my personal website currently online [here](https://bonnyad9.github.io).
 
 ## Links
 - Author: [BonnyAD9](https://github.com/BonnyAD9)
