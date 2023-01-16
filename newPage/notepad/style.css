@@ -1,0 +1,10 @@
+body {
+    padding: 5px;
+    background-color: #222222;
+}
+
+.text {
+    color: white;
+    font-family: 'Cascadia Code', 'Courier New', Courier, monospace;
+    font-size: small;
+}

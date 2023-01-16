@@ -1,0 +1,19 @@
+{
+    "files": [
+        {
+            "name": "README.txt",
+            "content": "I study at the University of Technology in Brno, specifically at the Faculty of Information Technology. At the time of writing I am 19 and I have been self-learning programming for ~6 years. I mostly enjoy programming in languages like C#, C, C++... One of my most useless skills is that I can do something in the J programming language. I enjoy functional programming (and Haskell) but I use it only when it makes sense."
+        }
+    ],
+    "apps": [
+        {
+            "id": "wo-notepad",
+            "name": "Notepad",
+            "source": "notepad/index.html",
+            "icon": "notepad/icon.png"
+        }
+    ],
+    "assocs": {
+        "txt": "wo-notepad"
+    }
+}
