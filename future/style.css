@@ -1,0 +1,85 @@
+html {
+    margin: 0px;
+    padding: 0px;
+}
+
+head {
+    margin: 0px;
+    padding: 0px;
+    height: 0px;
+}
+
+body {
+    color: #EEE;
+    background-color: #555;
+    margin: 0px;
+    padding: 0px;
+    font-family:
+        'Cascadia Code',
+        'Cascadia Mono',
+        'Consolas',
+        'Courier New',
+        Courier,
+        monospace;
+}
+
+.top-page {
+    height: 100vh;
+    padding: 0px;
+    margin: 0px;
+    background-color: #181818;
+}
+
+.top-page-title {
+    position: relative;
+    top: 25%;
+}
+
+.top-page-title h1 {
+    font-size: 3em;
+    margin: 0px;
+    text-align: center;
+}
+
+.top-page-title h2 {
+    text-align: center;
+}
+
+.section {
+    padding: 3em;
+    border-top: 1px solid #555;
+}
+
+.section-odd {
+    background-color: #222;
+}
+
+.section-even {
+    background-color: #181818;
+}
+
+.about, .project-main {
+    display: flex;
+}
+
+.about h1, .project-title {
+    width: 20%;
+    flex-grow: 1;
+    flex-shrink: 0;
+    text-align: right;
+    padding: 20px;
+}
+
+.about-about, .pdoject-about {
+    flex-grow: 10;
+    flex-shrink: 10;
+}
+
+.about-links, .project-links {
+    width: 15%;
+    flex-grow: 1;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
