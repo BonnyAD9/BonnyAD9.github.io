@@ -1,0 +1,193 @@
+:root {
+    --white:        #fff;
+    --black:        #000;
+    --red:          #f55;
+    --dark-red:     #833;
+    --green:        #5f5;
+    --dark-green:   #383;
+    --yellow:       #ff5;
+    --dark-yellow:  #883;
+    --blue:         #55f;
+    --dark-blue:    #338;
+    --magenta:      #f5f;
+    --dark-magenta: #838;
+    --cyan:         #5ff;
+    --dark-cyan:    #388;
+    --gray:         #ccc;
+    --dark-gray:    #777;
+}
+
+body {
+    margin: 0;
+    background-color: #101010;
+    color: #eee;
+}
+
+body::-webkit-scrollbar {
+    display: none;
+}
+
+body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.true-input {
+    opacity: 0;
+    filter: alpha(opacity=0);
+    width: 0px;
+    height: 0px;
+    overflow: hidden;
+    margin: 0px;
+    padding: 0px;
+    position: absolute;
+    margin-top: -2em;
+}
+
+.term,
+.term span {
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.term {
+    width: calc(100vw - 10px);
+    min-height: calc(100vh - 14px - 1em);
+    padding: 5px;
+}
+
+@keyframes blinking {
+    50% {
+        background-color: white;
+        color: black;
+    }
+}
+
+.caret {
+    animation: blinking 2s step-start infinite;
+}
+
+.selected {
+    background-color: gray;
+}
+
+.bold {
+    font-style: bold;
+}
+
+.italic, .i {
+    font-style: italic;
+}
+
+.black-fg, .black, .bl {
+    color: var(--black);
+}
+
+.white-fg, .white, .w {
+    color: var(--white);
+}
+
+.gray-fg, .gray, .gr {
+    color: var(--dark-gray);
+}
+
+.bright-gray-fg, .bgray, .bgr {
+    color: var(--gray);
+}
+
+.red-fg, .red, .r {
+    color: var(--red);
+}
+
+.green-fg, .green, .g {
+    color: var(--green);
+}
+
+.yellow-fg, .yellow, .y {
+    color: var(--yellow);
+}
+
+.magenta-fg, .magenta, .m {
+    color: var(--magenta);
+}
+
+.cyan-fg, .cyan, .c {
+    color: var(--cyan);
+}
+
+.dark-red-fg, .dred, .dr {
+    color: var(--dark-red);
+}
+
+.dark-green-fg, .dgreen, .dg {
+    color: var(--dark-green);
+}
+
+.dark-yellow-fg, .dyellow, .dy {
+    color: var(--dark-yellow);
+}
+
+.dark-magenta-fg, .dmagenta, .dm {
+    color: var(--dark-magenta);
+}
+
+.dark-cyan-fg, .dcyan, .dc {
+    color: var(--dark-cyan);
+}
+
+.black-bg, .blackb, .blb {
+    background-color: var(--black);
+}
+
+.white-bg, .whiteb, .wb {
+    background-color: var(--white);
+}
+
+.gray-bg, .grayb, .grb {
+    background-color: var(--dark-gray);
+}
+
+.bright-gray-bg, .bgrayb, .bgrb {
+    background-color: var(--gray);
+}
+
+.red-bg, .redb, .rb {
+    background-color: var(--red);
+}
+
+.green-bg, .greenb, .gb {
+    background-color: var(--green);
+}
+
+.yellow-bg, .yellowb, .yb {
+    background-color: var(--yellow);
+}
+
+.magenta-bg, .magentab, .mb {
+    background-color: var(--magenta);
+}
+
+.cyan-bg, .cyanb, .cb {
+    background-color: var(--cyan);
+}
+
+.dark-red-bg, .dredb, .drb {
+    background-color: var(--dark-red);
+}
+
+.dark-green-bg, .dgreenb, .dgb {
+    background-color: var(--dark-green);
+}
+
+.dark-yellow-bg, .dyellowb, .dyb {
+    background-color: var(--dark-yellow);
+}
+
+.dark-magenta-bg, .dmagentab, .dmb {
+    background-color: var(--dark-magenta);
+}
+
+.dark-cyan-bg, .dcyanb, .dcb {
+    background-color: var(--dark-cyan);
+}
