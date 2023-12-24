@@ -444,6 +444,7 @@ class Terminal {
                 this.input.value = "";
                 onValueChange();
             }
+            return false;
         };
 
         const onClick = _e => {
