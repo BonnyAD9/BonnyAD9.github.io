@@ -32,6 +32,10 @@ body {
     scrollbar-width: none;
 }
 
+.page-src {
+    display: none;
+}
+
 .true-input {
     opacity: 0;
     filter: alpha(opacity=0);

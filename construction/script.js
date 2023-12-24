@@ -115,6 +115,58 @@ function mkdir(env) {
     return 0;
 }
 
+/**
+ * Prints the contents of a file
+ * @param {Env} env environment
+ * @returns exit code
+ */
+function cat(env) {
+    if (env.args.length != 2) {
+        env.error("Invalid number of arguments");
+        return 1;
+    }
+
+    let file = new Path(env.args[1]).locate();
+    if (!file) {
+        env.error(`file '${env.args[1]}' doesn't exist`);
+        return 1;
+    }
+
+    if (file.type != 'file') {
+        env.error(`'${env.args[1]}' is not a file`);
+        return 1;
+    }
+
+    env.print(file.value);
+    return 0;
+}
+
+let title = '\
+       __      __         __       ___          __              __    \n\
+      / /___ _/ /____  __/ /_     /   |  ____  / /_____  ____  /_/___ \n\
+ __  / / __ `/ //_/ / / / __ \\   / /| | / __ \\/ __/ __ \\/ __ \\/ / __ \\\n\
+/ /_/ / /_/ / ,< / /_/ / /_/ /  / ___ |/ / / / /_/ /_/ / / / / / / / /\n\
+\\____/\\__,_/_/|_|\\__,_/_.___/  /_/  |_/_/ /_/\\__/\\____/_/ /_/_/_/ /_/ \n\
+                                                                      \n\
+                     _|ˇ/_ __  _       __                             \n\
+                    / ___// /_(_)___ _/ /__  _____                    \n\
+                    \\__ \\/ __/ / __ `/ / _ \\/ ___/                    \n\
+                   ___/ / /_/ / /_/ / /  __/ /                        \n\
+                  /____/\\__/_/\\__, /_/\\___/_/                         \n\
+                             /____/                                   \n\
+\n\
+                             Developer                              \n\
+\n';
+
+let about = '\n\
+I study at the University of Technology in Brno, specifically at the Faculty\n\
+of Information Technology. At the time of writing I am 20 and I have been\n\
+self-learning programming for ~6 years. I mostly enjoy programming in\n\
+languages like Rust, C, C#, C++,... One of my most useless skills is that I\n\
+can do something in the J programming language. I enjoy functional \n\
+programming (and Haskell) but I use it only when it makes sense.\n\
+\n';
+
 // the default directory
 jinux.root.value = {
     /** @type {FSItem} */
@@ -137,6 +189,10 @@ jinux.root.value = {
                     mkdir: {
                         type: 'exe',
                         value: mkdir,
+                    },
+                    cat: {
+                        type: 'exe',
+                        value: cat,
                     }
                 }
             }
@@ -149,7 +205,16 @@ jinux.root.value = {
             /** @type {FSItem} */
             host: {
                 type: 'dir',
-                value: {}
+                value: {
+                    title: {
+                        type: 'file',
+                        value: title,
+                    },
+                    about: {
+                        type: 'file',
+                        value: about,
+                    }
+                }
             }
         }
     }
@@ -161,3 +226,13 @@ jinux.env.HOME = "/home/host";
 
 jinux.init();
 term.init();
+
+let coms = document.querySelector(".page-src").innerHTML
+    .split("\n")
+    .map(s => s.trim())
+    .filter(s => s.length !== 0)
+    .forEach(c => {
+        term.env.println(c);
+        term.execute(c);
+        term.prompt1();
+    });
