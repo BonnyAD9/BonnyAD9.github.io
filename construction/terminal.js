@@ -587,18 +587,18 @@ class Terminal {
 Version: ${version}
 
 ${col('g', "Commands:")}
-${col('y', "help")}
-shows this help
+  ${col('y', "help")}
+    shows this help
 
-${col('y', "cd")} ${col('gr', "[directory]")}
-changes the working directory to the given directory
+  ${col('y', "cd")} ${col('gr', "[directory]")}
+    changes the working directory to the given directory
 
-${col('y', "echo")} ${col('gr', "[arguments...]")}
-prints the arguments with spaces between them
+  ${col('y', "echo")} ${col('gr', "[arguments...]")}
+    prints the arguments with spaces between them
 
-${col('y', "&lt;executable in one of the paths in $PATH&gt")} \
+  ${col('y', "&lt;executable in one of the paths in $PATH&gt")} \
 ${col('gr', "[arguments...]")}
-executes the program with the arguments
+    executes the program with the arguments
 `
         );
     }
