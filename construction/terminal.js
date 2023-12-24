@@ -404,14 +404,13 @@ class Terminal {
                     this.dis_input.innerHTML = first
                         +`<span class="caret">${caret}</span>`
                         + second;
-                    window.scrollTo(0, document.body.scrollHeight);
-                    return;
+                } else {
+                    selected = value.substring(sel[0] + 1, sel[1] + 1);
+                    this.dis_input.innerHTML = first
+                        + `<span class="caret">${caret}</span>`
+                        + `<span class="selected">${selected}</span>`
+                        + second;
                 }
-                selected = value.substring(sel[0] + 1, sel[1] + 1);
-                this.dis_input.innerHTML = first
-                    + `<span class="caret">${caret}</span>`
-                    + `<span class="selected">${selected}</span>`
-                    + second;
             } else {
                 selected = value.substring(sel[0], sel[1]);
                 this.dis_input.innerHTML = first
@@ -419,7 +418,12 @@ class Terminal {
                     + `<span class="caret">${caret}</span>`
                     + second;
             }
-            window.scrollTo(0, document.body.scrollHeight);
+            let car = this.dis_input.querySelector('.caret');
+            if (car) {
+                car.scrollIntoView();
+            } else {
+                window.scrollTo(0, document.body.scrollHeight);
+            }
         }
 
         const onChange = e => {
