@@ -1,37 +1,18 @@
-function prepDir(path, dir) {
-    dir.path = path;
-    if (dir.type !== 'dir') {
-        return;
-    }
-    Object.entries(dir.value).forEach(([n, d]) => {
-        prepDir(path.join(Path(n)), d);
-    });
+class FSItem {
+    /** @type {Path} */
+    path;
+    /** @type {String} */
+    type;
+    /** @type {String | [String: FSItem] | function([String]): [Number]} */
+    value;
 }
 
-// jinux is not unix
-var jinux = {
-    root: {
-        type: 'dir',
-        value: {},
-    },
-    env: {},
-    loc_env: {},
-    cwd: Path('/'),
-
-    init() {
-        prepDir(Path("/"), this.root);
-        let home = jinux.getEnv("HOME");
-        jinux.cwd = home ? Path(home) : Path("/");
-    },
-
-    getEnv(name) {
-        if (this.env[name]) {
-            return this.env[name];
-        }
-        return this.env[name];
-    },
-};
-
+/**
+ * Applies styles to the given string.
+ * @param {String} c style of the string
+ * @param {String} s the string
+ * @returns {String} new styled string.
+ */
 function col(c, s) {
     return `<span class="${c}">${s}</span>`;
 }
@@ -47,6 +28,12 @@ var signature = '\
 <span style="color: #be32e6">D</span>\
 <span style="color: #b432f0">9</span>'
 
+/**
+ *
+ * @param {FSItem} pos position in the file system
+ * @param {[String]} comps remaining components of the path
+ * @returns {FSItem | null} The item at the path or null if it is not found
+ */
 function locatePath(pos, comps) {
     if (!pos) {
         return null;
@@ -62,324 +49,440 @@ function locatePath(pos, comps) {
     return locatePath(pos.value[head], tail);
 }
 
-function Path(path) {
-    let p;
-    if (path.constructor === Array) {
-        if (path[0] === "/") {
-            let [_, ...rest] = path;
-            p = "/" + rest.join("/");
-        } else {
-            p = path.join;
+/**
+ * Represents path in the junix os.
+ */
+class Path {
+    /** @type String */
+    path;
+
+    /**
+     * Creates new path.
+     * @param {String | [String] | Path} Path as string or as components.
+     */
+    constructor(path) {
+        if (path.constructor === Path) {
+            this.path = path.path;
+            return;
         }
-    } else {
-        p = path.replace(/\/+$/, "");
-        if (p.length === 0) {
-            p = "/";
+        if (path.constructor === Array) {
+            if (path[0] !== "/") {
+                this.path = path.join("/");
+                return;
+            }
+
+            let [_, ...rest] = path;
+            this.path = "/" + rest.join("/");
+            return;
+        }
+
+        this.path = path.replace(/\/+$/, "");
+        if (this.path.length === 0) {
+            this.path = "/";
         }
     }
 
-    return {
-        path: p,
+    /**
+     * Gets the last component of the path.
+     * @returns {String} The last component of the path.
+     */
+    name() {
+        let comp = this.absolute().components();
+        return comp[comp.length - 1];
+    }
 
-        /// Gets the last component of the path
-        name() {
-            let comp = this.components();
-            return comp[comp.length - 1];
-        },
+    /**
+     * Gets te components of the path.
+     * @returns {[String]} the components of the path.
+     */
+    components() {
+        let comp = this.path.split("/").filter(c => c.length !== 0);
+        if (this.path.startsWith("/")) {
+            return ["/", ...comp];
+        }
+        return comp;
+    }
 
-        /// Gets all the components of the path
-        components() {
-            let comp = this.path.split("/").filter(c => c.length !== 0);
-            if (this.path.startsWith("/")) {
-                return ["/", ...comp];
-            }
-            return comp;
-        },
-
-        /// joins two paths
-        join(other) {
-            if (other.path.startsWith("/")) {
-                if (this.path === "/") {
-                    return other.path;
-                }
-                return Path(this.path + other.path);
-            }
+    /**
+     * Joins two paths.
+     * @param {Path} other Path to be adjoined to this path.
+     * @returns {Path} new path that is the two paths joined together.
+     */
+    join(other) {
+        if (other.path.startsWith("/")) {
             if (this.path === "/") {
-                return Path("/" + other.path);
+                return other.path;
             }
-            return Path(this.path + "/" + other.path);
-        },
+            return new Path(this.path + other.path);
+        }
+        if (this.path === "/") {
+            return new Path("/" + other.path);
+        }
+        return new Path(this.path + "/" + other.path);
+    }
 
-        /// Gets the child of this directory with the given name
-        getChild(child) {
-            let target = this.join(child);
-            if (target.exists()) {
-                return target;
-            }
-            return null;
-        },
+    /**
+     * Checks whether the item at the path exists.
+     * @returns {boolean} true if the item at the path exists, otherwise false.
+     */
+    exists() {
+        return !!this.locate();
+    }
 
-        /// Checks if this items exists
-        exists() {
-            return this.locate();
-        },
+    /**
+     * Gets the absolute path of this path.
+     * @returns {Path} The absolute path with all '.' and '..' resolved.
+     */
+    absolute() {
+        let _;
+        let comp = this.components();
+        if (comp.length == 0) {
+            return new Path("");
+        }
 
-        /// Resolves the path to absolute path
-        resolve() {
-            let _;
-            let comp = this.components();
-            if (comp.length == 0) {
-                return Path("");
-            }
+        let res = [];
 
-            let res = [];
+        if (comp[0] === ".") {
+            res.push(...jinux.cwd.components());
+            [_, ...comp] = comp;
+        } else if (comp[0] === "..") {
+            res.push(...jinux.cwd.components());
+            res.pop();
+            [_, ...comp] = comp;
+        } else if (comp[0] === "~") {
+            res.push(...new Path(jinux.getEnv("HOME") ?? "/").components());
+            [_, ...comp] = comp;
+        } else if (comp[0] !== "/") {
+            res.push(...jinux.cwd.components());
+        }
 
-            if (comp[0] === ".") {
-                res.push(...jinux.cwd.components());
-                [_, ...comp] = comp;
-            } else if (comp[0] === "..") {
-                res.push(...jinux.cwd.components());
+        comp.forEach(c => {
+            if (c === "..") {
                 res.pop();
-                [_, ...comp] = comp;
-            } else if (comp[0] === "~") {
-                res.push(...Path(jinux.getEnv("HOME") ?? "/").components());
-                [_, ...comp] = comp;
-            } else if (comp[0] !== "/") {
-                res.push(...jinux.cwd.components());
+            } else if (c !== ".") {
+                res.push(c);
             }
+        });
 
-            comp.forEach(c => {
-                if (c === "..") {
-                    res.pop();
-                } else if (c !== ".") {
-                    res.push(c);
-                }
-            });
+        if (res.length === 0) {
+            return new Path("");
+        }
 
-            if (res.length === 0) {
-                return Path("");
-            }
+        [_, ...res] = res;
+        return new Path("/" + res.join("/"))
+    }
 
-            [_, ...res] = res;
-            return Path("/" + res.join("/"))
-        },
+    /**
+     * Locates the item that this path points to in the file system.
+     * @returns {FSItem | null} item that this path points to or null if it
+     *                          doesn't exist
+     */
+    locate() {
+        let [_, ...path] = this.absolute().components();
+        return locatePath(jinux.root, path);
+    }
 
-        /// Locates the item in the file system
-        locate() {
-            let [_, ...path] = this.resolve().components();
-            return locatePath(jinux.root, path);
-        },
+    /**
+     * Gets the type of this item
+     * @returns {String | } type of this item or null if the item doesn't exist
+     */
+    type() {
+        let loc = this.locate();
+        return loc ? loc.type : null;
+    }
 
-        /// Gets the type of this item
-        type() {
-            let loc = this.locate();
-            return loc ? loc.type : null;
-        },
+    /**
+     * Returns path without the start of the given path.
+     * @param {Path} path start of the path to skip
+     * @returns {Path} path without the start.
+     */
+    skipStart(path) {
+        if (this.path.startsWith(path.path)) {
+            return new Path("~").join(new Path(this.path.substring(
+                path.path.length,
+                this.path.length
+            )));
+        }
+        return new Path(this.path);
+    }
 
-        skipStart(path) {
-            if (this.path.startsWith(path.path)) {
-                return Path("~").join(Path(this.path.substring(
-                    path.path.length,
-                    this.path.length
-                )));
-            }
-            return Path(this.path);
-        },
-
-        parent() {
-            let comp = this.resolve().components();
-            return Path(comp.slice(0, comp.length -1));
-        },
+    /**
+     * Gets the parent folder of this path. Doesn't check for existance.
+     * @returns {Path} the parent folder.
+     */
+    parent() {
+        let comp = this.absolute().components();
+        return new Path(comp.slice(0, comp.length -1));
     }
 }
 
-function Terminal(show, input) {
-    let res = {
-        display: show,
-        dis_input: null,
-        input: input,
-        env: {},
-        sel: [0, 0],
-        downPos: [0, 0],
+function prepDir(path, dir) {
+    dir.path = path;
+    if (dir.type !== 'dir') {
+        return;
+    }
+    Object.entries(dir.value).forEach(([n, d]) => {
+        prepDir(path.join(new Path(n)), d);
+    });
+}
 
-        init() {
-            const onValueChange = _e => {
-                let sel = [input.selectionStart, input.selectionEnd];
+// jinux is not unix
+var jinux = {
+    /** @type {FSItem} */
+    root: {
+        type: 'dir',
+        value: {},
+    },
+    /** @type {[String: String]} */
+    env: {},
+    /** @type {[String: String]} */
+    loc_env: {},
+    /** @type {Path} */
+    cwd: new Path('/'),
 
-                let idx = sel[0];
-                if (sel[0] === this.sel[0] && sel[1] !== this.sel[1]) {
-                    idx = sel[1];
-                }
+    init() {
+        prepDir(new Path("/"), this.root);
+        let home = jinux.getEnv("HOME");
+        jinux.cwd = home ? new Path(home) : new Path("/");
+    },
 
-                this.sel = sel;
+    /**
+     *
+     * @param {String} name
+     * @returns {String} value of the invironment variable
+     */
+    getEnv(name) {
+        if (this.env[name]) {
+            return this.env[name];
+        }
+        return this.env[name];
+    },
+};
 
-                let value = input.value;
-                let first = value.substring(0, sel[0]);
-                let caret = value
-                    .substring(idx, Math.min(idx + 1, value.length));
-                if (caret.length === 0) {
-                    caret = " ";
-                }
-                let selected;
-                let second = value.substring(sel[1] + 1, value.length);
-                if (idx == sel[0]) {
-                    if (idx == sel[1]) {
-                        this.dis_input.innerHTML = first
-                            +`<span class="caret">${caret}</span>`
-                            + second;
-                        window.scrollTo(0, document.body.scrollHeight);
-                        return;
-                    }
-                    selected = value.substring(sel[0] + 1, sel[1] + 1);
-                    this.dis_input.innerHTML = first
-                        + `<span class="caret">${caret}</span>`
-                        + `<span class="selected">${selected}</span>`
-                        + second;
-                } else {
-                    selected = value.substring(sel[0], sel[1]);
-                    this.dis_input.innerHTML = first
-                        + `<span class="selected">${selected}</span>`
-                        + `<span class="caret">${caret}</span>`
-                        + second;
-                }
-                window.scrollTo(0, document.body.scrollHeight);
+function mkPath(path) {
+    return new Path(path);
+}
+
+class Terminal {
+    /** @type HTMLElement */
+    display;
+    /** @type HTMLElement */
+    dis_input = null;
+    /** @type HTMLElement */
+    input;
+    env = {};
+    /** @type [Number] */
+    sel = [0, 0];
+    /** @type [Number] */
+    downPos = [0, 0];
+
+    /**
+     * Creates new terminal.
+     * @param {HTMLElement} show the display of the terminal
+     * @param {HTMLElement} input the input field of the terminal
+     */
+    constructor(show, input) {
+        this.display = show;
+        this.input = input;
+    }
+
+    /**
+     * Initializes the terminal.
+     */
+    init() {
+        const onValueChange = _e => {
+            let sel = [this.input.selectionStart, this.input.selectionEnd];
+
+            let idx = sel[0];
+            if (sel[0] === this.sel[0] && sel[1] !== this.sel[1]) {
+                idx = sel[1];
             }
 
-            const onChange = e => {
-                let sel = [input.selectionStart, input.selectionEnd];
-                if (sel[0] === this.sel[0] && sel[1] === this.sel[1]) {
+            this.sel = sel;
+
+            let value = this.input.value;
+            let first = value.substring(0, sel[0]);
+            let caret = value
+                .substring(idx, Math.min(idx + 1, value.length));
+            if (caret.length === 0) {
+                caret = " ";
+            }
+            let selected;
+            let second = value.substring(sel[1] + 1, value.length);
+            if (idx == sel[0]) {
+                if (idx == sel[1]) {
+                    this.dis_input.innerHTML = first
+                        +`<span class="caret">${caret}</span>`
+                        + second;
+                    window.scrollTo(0, document.body.scrollHeight);
                     return;
                 }
-
-                onValueChange(e);
+                selected = value.substring(sel[0] + 1, sel[1] + 1);
+                this.dis_input.innerHTML = first
+                    + `<span class="caret">${caret}</span>`
+                    + `<span class="selected">${selected}</span>`
+                    + second;
+            } else {
+                selected = value.substring(sel[0], sel[1]);
+                this.dis_input.innerHTML = first
+                    + `<span class="selected">${selected}</span>`
+                    + `<span class="caret">${caret}</span>`
+                    + second;
             }
+            window.scrollTo(0, document.body.scrollHeight);
+        }
 
-            const keyPress = e => {
-                if (e.key === 'Enter') {
-                    this.dis_input.innerHTML = input.value;
-                    this.println();
-                    this.execute(input.value);
-                    this.prompt1();
-                    this.input.value = "";
-                    onValueChange();
-                }
-            };
-
-            const onClick = _e => {
-                if (document.getSelection().toString().length === 0) {
-                    this.input.focus({preventScroll: true});
-                }
-            };
-
-            const onBlur = _e => {
-                this.dis_input.innerHTML = input.value;
-            }
-
-            input.addEventListener('keypress', keyPress);
-            input.addEventListener('input', onValueChange);
-            input.addEventListener('focus', onValueChange);
-            input.addEventListener('blur', onBlur);
-            document.addEventListener('selectionchange', onChange);
-            show.addEventListener('click', onClick);
-
-            this.prompt1();
-        },
-
-        print(...s) {
-            s.forEach(s => show.innerHTML += s);
-        },
-
-        println(...s) {
-            this.print(...s, "\n");
-        },
-
-        execute(command) {
-            if (command.constructor !== Array) {
-                command = command.split(" ").filter(c => c.length !== 0);
-            }
-            if (command.length == 0) {
+        const onChange = e => {
+            let sel = [this.input.selectionStart, this.input.selectionEnd];
+            if (sel[0] === this.sel[0] && sel[1] === this.sel[1]) {
                 return;
             }
-            let [cmd, ...args] = command;
 
-            switch (cmd) {
-                case "cd":
-                    this.cd(args);
-                    return;
-                case "echo":
-                    this.echo(args);
-                    return;
-                case "help":
-                    this.help(args);
-                    return;
+            onValueChange(e);
+        }
+
+        const keyPress = e => {
+            if (e.key === 'Enter') {
+                this.dis_input.innerHTML = this.input.value;
+                this.println();
+                this.execute(this.input.value);
+                this.prompt1();
+                this.input.value = "";
+                onValueChange();
             }
+        };
 
-            let path = jinux.env.PATH;
-            if (!path) {
-                this.println(
-                    col('red', "error: "),
-                    `${cmd}: command not found`
-                );
-                return;
+        const onClick = _e => {
+            if (document.getSelection().toString().length === 0) {
+                this.input.focus({preventScroll: true});
             }
-            path = path.split(":");
+        };
 
-            let exe = path.map(p => Path(p).join(Path(cmd)).locate());
-            exe = exe.filter(p => p && p.type === 'exe');
+        const onBlur = _e => {
+            this.dis_input.innerHTML = this.input.value;
+        }
 
-            if (exe.length === 0) {
-                this.println(
-                    col('red', "error: "),
-                    `${cmd}: command not found`
-                );
-                return 1;
-            }
-            exe[0].value([exe[0].path.path, ...args]);
-        },
+        this.input.addEventListener('keypress', keyPress);
+        this.input.addEventListener('input', onValueChange);
+        this.input.addEventListener('focus', onValueChange);
+        this.input.addEventListener('blur', onBlur);
+        document.addEventListener('selectionchange', onChange);
+        this.display.addEventListener('click', onClick);
 
-        parsePrompt(str) {
-            return str
-                .replace("\\h", "jinux")
-                .replace("\\n", "\n")
-                .replace("\\s", "jsh")
-                .replace("\\u", "host")
-                .replace("\\v", version)
-                .replace("\\w", jinux.cwd.skipStart(Path("~").resolve()).path)
-                .replace("\\W", jinux.cwd.path);
-        },
+        this.prompt1();
+    }
 
-        prompt1() {
-            let prompt = jinux.getEnv("PS1") ?? `\\u@\\h \\w$ `;
-            this.print(this.parsePrompt(prompt));
-            this.print("<span></span>");
-            this.dis_input = this.display.lastElementChild;
-        },
+    /**
+     * Prints the given arguments to the terminal display.
+     * @param  {...any} s what to print, there is no separator.
+     */
+    print(...s) {
+        s.forEach(s => this.display.innerHTML += s);
+    }
 
-        clear() {
-            this.display.innerHTML = "";
-        },
+    /**
+     * Prints the given arguments to the terminal display and appends newline.
+     * @param  {...any} s what to print, there is no separator.
+     */
+    println(...s) {
+        this.print(...s, "\n");
+    }
 
-        cd(args) {
-            if (args.length > 2) {
-                this.println(
-                    col('red', "error: "),
-                    `Unexpected agument '${args[1]}'`
-                );
-                return 1;
-            }
-            if (args.length === 0) {
-                let dir = Path("~").resolve();
-                if (dir.type() !== 'dir') {
-                    this.println(
-                        col('red', "error: "),
-                        `'${dir.path}' is not a directory`
-                    );
-                    return 1;
-                }
-                jinux.cwd = dir;
-                return 0;
-            }
-            let dir = Path(args[0]).resolve();
+    /**
+     * Executes the given command in the terminal.
+     * @param {String | [String]} command command to execute. When array, it is
+     *                            interpreted as [command, ...args].
+     * @returns {Number} return value of the command
+     */
+    execute(command) {
+        if (command.constructor !== Array) {
+            command = command.split(" ").filter(c => c.length !== 0);
+        }
+        if (command.length == 0) {
+            return 0;
+        }
+        let [cmd, ...args] = command;
+
+        switch (cmd) {
+            case "cd":
+                return this.cd(args);
+            case "echo":
+                return this.echo(args);
+            case "help":
+                return this.help(args);
+        }
+
+        let path = jinux.env.PATH;
+        if (!path) {
+            this.println(
+                col('red', "error: "),
+                `${cmd}: command not found`
+            );
+            return 1;
+        }
+        path = path.split(":");
+
+        let exe = path.map(p => new Path(p).join(new Path(cmd)).locate());
+        exe = exe.filter(p => p && p.type === 'exe');
+
+        if (exe.length === 0) {
+            this.println(
+                col('red', "error: "),
+                `${cmd}: command not found`
+            );
+            return 1;
+        }
+        return exe[0].value([exe[0].path.path, ...args]);
+    }
+
+    /**
+     * Parses prompt string.
+     * @param {String} str prompt to parse
+     * @returns {String} parsed prompt string.
+     */
+    parsePrompt(str) {
+        return str
+            .replace("\\h", "jinux")
+            .replace("\\n", "\n")
+            .replace("\\s", "jsh")
+            .replace("\\u", "host")
+            .replace("\\v", version)
+            .replace("\\w", jinux.cwd.skipStart(new Path("~").absolute()).path)
+            .replace("\\W", jinux.cwd.path);
+    }
+
+    /**
+     * Prompts with the `$PS1` prompt
+     */
+    prompt1() {
+        let prompt = jinux.getEnv("PS1") ?? `\\u@\\h \\w$ `;
+        this.print(this.parsePrompt(prompt));
+        this.print("<span></span>");
+        this.dis_input = this.display.lastElementChild;
+    }
+
+    /**
+     * Clears the terminal display.
+     */
+    clear() {
+        this.display.innerHTML = "";
+    }
+
+    /**
+     * Changes the working directory.
+     * @param {[String]} args command arguments
+     * @returns {Number} exit code.
+     */
+    cd(args) {
+        if (args.length > 2) {
+            this.println(
+                col('red', "error: "),
+                `Unexpected agument '${args[1]}'`
+            );
+            return 1;
+        }
+        if (args.length === 0) {
+            let dir = new Path("~").resolve();
             if (dir.type() !== 'dir') {
                 this.println(
                     col('red', "error: "),
@@ -389,34 +492,50 @@ function Terminal(show, input) {
             }
             jinux.cwd = dir;
             return 0;
-        },
-
-        echo(args) {
-            this.println(args.join(" "));
-        },
-
-        help(_args) {
+        }
+        let dir = new Path(args[0]).resolve();
+        if (dir.type() !== 'dir') {
             this.println(
+                col('red', "error: "),
+                `'${dir.path}' is not a directory`
+            );
+            return 1;
+        }
+        jinux.cwd = dir;
+        return 0;
+    }
+
+    /**
+     * Prints to the screen
+     * @param {[String]} args command line arguments
+     */
+    echo(args) {
+        this.println(args.join(" "));
+    }
+
+    /**
+     * Prints help about the terminal.
+     * @param {[String]} _args unused
+     */
+    help(_args) {
+        this.println(
 `Welcome to ${col('g i', "jsh")} help by ${signature}
 Version: ${version}
 
 ${col('g', "Commands:")}
-  ${col('y', "help")}
-    shows this help
+${col('y', "help")}
+shows this help
 
-  ${col('y', "cd")} ${col('gr', "[directory]")}
-    changes the working directory to the given directory
+${col('y', "cd")} ${col('gr', "[directory]")}
+changes the working directory to the given directory
 
-  ${col('y', "echo")} ${col('gr', "[arguments...]")}
-    prints the arguments with spaces between them
+${col('y', "echo")} ${col('gr', "[arguments...]")}
+prints the arguments with spaces between them
 
-  ${col('y', "&lt;executable in one of the paths in $PATH&gt")} \
+${col('y', "&lt;executable in one of the paths in $PATH&gt")} \
 ${col('gr', "[arguments...]")}
-    executes the program with the arguments
+executes the program with the arguments
 `
-            );
-        }
-    };
-
-    return res;
+        );
+    }
 }
