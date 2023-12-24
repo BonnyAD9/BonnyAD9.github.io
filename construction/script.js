@@ -63,6 +63,43 @@ function ls(args) {
     return 0;
 }
 
+function mkdir(args) {
+    if (args.length != 2) {
+        term.println(col('r', "error: ") + "Invalid number of arguments");
+        return 1;
+    }
+
+    let path = Path(args[1]);
+    let name = path.name();
+    let par = path.parent().locate();
+
+    if (!par) {
+        term.println(
+            col('r', "error: ")
+                + `Parent directory of '${path.path}' doesn't exist`
+        );
+        return 1;
+    }
+
+    if (par.type !== 'dir') {
+        term.println(col('r', "error: ") + `'${par.path}' is not a directory`);
+        return 1;
+    }
+
+    if (par.value[name]) {
+        term.println(col('r', "error:") + `'${path.path}' already exists.`);
+        return 1;
+    }
+
+    par.value[name] = {
+        path: path.resolve(),
+        type: 'dir',
+        value: {},
+    };
+
+    return 0;
+}
+
 // the default directory
 jinux.root.value = {
     usr: {
@@ -78,6 +115,10 @@ jinux.root.value = {
                     ls: {
                         type: 'exe',
                         value: ls,
+                    },
+                    mkdir: {
+                        type: 'exe',
+                        value: mkdir,
                     }
                 }
             }

@@ -63,9 +63,19 @@ function locatePath(pos, comps) {
 }
 
 function Path(path) {
-    let p = path.replace(/\/+$/, "");
-    if (p.length === 0) {
-        p = "/";
+    let p;
+    if (path.constructor === Array) {
+        if (path[0] === "/") {
+            let [_, ...rest] = path;
+            p = "/" + rest.join("/");
+        } else {
+            p = path.join;
+        }
+    } else {
+        p = path.replace(/\/+$/, "");
+        if (p.length === 0) {
+            p = "/";
+        }
     }
 
     return {
@@ -79,8 +89,8 @@ function Path(path) {
 
         /// Gets all the components of the path
         components() {
-            let comp = path.split("/").filter(c => c.length !== 0);
-            if (path.startsWith("/")) {
+            let comp = this.path.split("/").filter(c => c.length !== 0);
+            if (this.path.startsWith("/")) {
                 return ["/", ...comp];
             }
             return comp;
@@ -174,6 +184,11 @@ function Path(path) {
                 )));
             }
             return Path(this.path);
+        },
+
+        parent() {
+            let comp = this.resolve().components();
+            return Path(comp.slice(0, comp.length -1));
         },
     }
 }
