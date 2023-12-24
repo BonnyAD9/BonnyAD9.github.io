@@ -83,7 +83,7 @@ class Env {
     }
 
     getVar(name) {
-        if (vars[name]) {
+        if (this.vars[name]) {
             return vars[name];
         }
         if (jinux.env[name]) {
@@ -523,7 +523,7 @@ class Terminal {
      * Prompts with the `$PS1` prompt
      */
     prompt1() {
-        let prompt = env.getVar("PS1") ?? `\\u@\\h \\w$ `;
+        let prompt = this.env.getVar("PS1") ?? `\\u@\\h \\w$ `;
         this.env.print(this.parsePrompt(prompt));
         this.env.print("<span></span>");
         this.dis_input = this.display.lastElementChild;
