@@ -70,7 +70,7 @@ class Env {
      * @param  {...any} vals error message
      */
     error(...vals) {
-        this.stderr(this.col('r', "error: "), ...vals, "\n");
+        this.stderr(col('r', "error: "), ...vals, "\n");
     }
 
     /**
@@ -80,6 +80,16 @@ class Env {
      */
     inherit(args) {
         return new Env(this.cwd, args, this.stdout, this.stderr);
+    }
+
+    getVar(name) {
+        if (vars[name]) {
+            return vars[name];
+        }
+        if (jinux.env[name]) {
+            return jinux.env[name];
+        }
+        return null;
     }
 }
 
@@ -226,7 +236,7 @@ class Path {
             res.pop();
             [_, ...comp] = comp;
         } else if (comp[0] === "~") {
-            res.push(...new Path(jinux.getEnv("HOME") ?? "/").components());
+            res.push(...new Path(jinux.getVar("HOME") ?? "/").components());
             [_, ...comp] = comp;
         } else if (comp[0] !== "/") {
             res.push(...jinux.cwd.components());
@@ -318,7 +328,7 @@ var jinux = {
 
     init() {
         prepDir(new Path("/"), this.root);
-        let home = jinux.getEnv("HOME");
+        let home = jinux.getVar("HOME");
         jinux.cwd = home ? new Path(home) : new Path("/");
     },
 
@@ -327,11 +337,11 @@ var jinux = {
      * @param {String} name
      * @returns {String} value of the invironment variable
      */
-    getEnv(name) {
+    getVar(name) {
         if (this.env[name]) {
             return this.env[name];
         }
-        return this.env[name];
+        return null;
     },
 };
 
@@ -513,7 +523,7 @@ class Terminal {
      * Prompts with the `$PS1` prompt
      */
     prompt1() {
-        let prompt = jinux.getEnv("PS1") ?? `\\u@\\h \\w$ `;
+        let prompt = env.getVar("PS1") ?? `\\u@\\h \\w$ `;
         this.env.print(this.parsePrompt(prompt));
         this.env.print("<span></span>");
         this.dis_input = this.display.lastElementChild;
@@ -537,7 +547,7 @@ class Terminal {
             return 1;
         }
         if (args.length === 0) {
-            let dir = new Path("~").resolve();
+            let dir = new Path("~").absolute();
             if (dir.type() !== 'dir') {
                 this.env.error(`'${dir.path}' is not a directory`);
                 return 1;
@@ -545,7 +555,7 @@ class Terminal {
             jinux.cwd = dir;
             return 0;
         }
-        let dir = new Path(args[0]).resolve();
+        let dir = new Path(args[0]).absolute();
         if (dir.type() !== 'dir') {
             this.env.error(`'${dir.path}' is not a directory`);
             return 1;
