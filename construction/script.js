@@ -5,16 +5,16 @@ let term = new Terminal(
 
 /**
  * Clears the terminal screen.
- * @param {[String]} args command line arguments
+ * @param {Env} env environment
  * @returns {Number} exit code
  */
-function clear(args) {
-    if (args.length === 1) {
+function clear(env) {
+    if (env.args.length === 1) {
         term.clear();
         return 0;
     }
     let version = "1.0.0"
-    term.println(
+    env.println(
         `Welcome to clear help for clear
 Version: ${version}
 
@@ -30,20 +30,18 @@ Usage:
 
 /**
  * Lists the directory items
- * @param {[String]} args command line arguments
+ * @param {Env} env environment
  * @returns [Number] exit code
  */
-function ls(args) {
-    if (args.length > 2) {
-        term.println(col('r', "error: ") + "ls accepts at most one argument");
+function ls(env) {
+    if (env.args.length > 2) {
+        env.error("ls accepts at most one argument");
         return 1;
     }
-    let p = args.length <= 1 ? jinux.cwd : new Path(args[1]);
+    let p = env.args.length <= 1 ? jinux.cwd : new Path(env.args[1]);
     let d = p.locate();
     if (!d) {
-        term.println(
-            col('r', "error: ") + `'${p.path}' no such file or directory.`
-        );
+        env.error(`'${p.path}' no such file or directory.`);
         return 1;
     }
 
@@ -67,47 +65,44 @@ function ls(args) {
     }
 
     if (d.type !== 'dir') {
-        term.println(getItem(d));
+        env.println(getItem(d));
         return 0;
     }
 
     let out = Object.entries(d.value).map(([_, f]) => getItem(f)).join(" ");
     if (out.length > 0) {
-        term.println(out);
+        env.println(out);
     }
     return 0;
 }
 
 /**
  * Creates new directory
- * @param {[String]} args command line arguments
+ * @param {Env} env environment
  * @returns exit code
  */
-function mkdir(args) {
-    if (args.length != 2) {
-        term.println(col('r', "error: ") + "Invalid number of arguments");
+function mkdir(env) {
+    if (env.args.length != 2) {
+        env.error("Invalid number of arguments");
         return 1;
     }
 
-    let path = new Path(args[1]);
+    let path = new Path(env.args[1]);
     let name = path.name();
     let par = path.parent().locate();
 
     if (!par) {
-        term.println(
-            col('r', "error: ")
-                + `Parent directory of '${path.path}' doesn't exist`
-        );
+        env.error(`Parent directory of '${path.path}' doesn't exist`);
         return 1;
     }
 
     if (par.type !== 'dir') {
-        term.println(col('r', "error: ") + `'${par.path}' is not a directory`);
+        env.error(`'${par.path}' is not a directory`);
         return 1;
     }
 
     if (par.value[name]) {
-        term.println(col('r', "error:") + `'${path.path}' already exists.`);
+        env.error(`'${path.path}' already exists.`);
         return 1;
     }
 

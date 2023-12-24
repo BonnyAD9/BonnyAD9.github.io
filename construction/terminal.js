@@ -3,8 +3,84 @@ class FSItem {
     path;
     /** @type {String} */
     type;
-    /** @type {String | [String: FSItem] | function([String]): [Number]} */
+    /** @type {String | [String: FSItem] | function(Env): [Number]} */
     value;
+}
+
+class Env {
+    /** @type {Path} */
+    cwd;
+    /** @type {[String]} */
+    args;
+    /** @type {Object} */
+    vars = {};
+    /** @type {function(...String)} */
+    stdout;
+    /** @type {function(...String)} */
+    stderr;
+
+    /**
+     * Creates new environment
+     * @param {Path} cwd current working directory
+     * @param {[String]} args command line arguments
+     * @param {function(...String)} stdout standard output
+     * @param {function(...String)} stderr standard error output
+     */
+    constructor(cwd, args, stdout, stderr) {
+        this.cwd = cwd;
+        this.args = args;
+        this.stdout = stdout;
+        this.stderr = stderr;
+    }
+
+    /**
+     * Prints to the standard output
+     * @param  {...any} vals values to print
+     */
+    print(...vals) {
+        this.stdout(...vals);
+    }
+
+    /**
+     * Prints to the standard output and appends newline.
+     * @param  {...any} vals values to print
+     */
+    println(...vals) {
+        this.stdout(...vals, "\n");
+    }
+
+    /**
+     * Prints to the standard error output
+     * @param  {...any} vals values to print
+     */
+    eprint(...vals) {
+        this.stderr(...vals);
+    }
+
+    /**
+     * Prints to the standard error output and appends newline.
+     * @param  {...any} vals values to print
+     */
+    eprintln(...vals) {
+        this.stderr(...vals, "\n");
+    }
+
+    /**
+     * prints error message
+     * @param  {...any} vals error message
+     */
+    error(...vals) {
+        this.stderr(this.col('r', "error: "), ...vals, "\n");
+    }
+
+    /**
+     * inerits this environment with the given arguments
+     * @param {[String]} args command line arguments
+     * @returns new environtment
+     */
+    inherit(args) {
+        return new Env(this.cwd, args, this.stdout, this.stderr);
+    }
 }
 
 /**
@@ -264,16 +340,17 @@ function mkPath(path) {
 }
 
 class Terminal {
-    /** @type HTMLElement */
+    /** @type {HTMLElement} */
     display;
-    /** @type HTMLElement */
+    /** @type {HTMLElement} */
     dis_input = null;
-    /** @type HTMLElement */
+    /** @type {HTMLElement} */
     input;
-    env = {};
-    /** @type [Number] */
+    /** @type {Env} */
+    env;
+    /** @type {[Number]} */
     sel = [0, 0];
-    /** @type [Number] */
+    /** @type {[Number]} */
     downPos = [0, 0];
 
     /**
@@ -290,6 +367,9 @@ class Terminal {
      * Initializes the terminal.
      */
     init() {
+        const print = (...s) => s.forEach(s => this.display.innerHTML += s);
+        this.env = new Env(jinux.cwd, [], print, print);
+
         const onValueChange = _e => {
             let sel = [this.input.selectionStart, this.input.selectionEnd];
 
@@ -344,7 +424,7 @@ class Terminal {
         const keyPress = e => {
             if (e.key === 'Enter') {
                 this.dis_input.innerHTML = this.input.value;
-                this.println();
+                this.env.println();
                 this.execute(this.input.value);
                 this.prompt1();
                 this.input.value = "";
@@ -373,22 +453,6 @@ class Terminal {
     }
 
     /**
-     * Prints the given arguments to the terminal display.
-     * @param  {...any} s what to print, there is no separator.
-     */
-    print(...s) {
-        s.forEach(s => this.display.innerHTML += s);
-    }
-
-    /**
-     * Prints the given arguments to the terminal display and appends newline.
-     * @param  {...any} s what to print, there is no separator.
-     */
-    println(...s) {
-        this.print(...s, "\n");
-    }
-
-    /**
      * Executes the given command in the terminal.
      * @param {String | [String]} command command to execute. When array, it is
      *                            interpreted as [command, ...args].
@@ -414,10 +478,7 @@ class Terminal {
 
         let path = jinux.env.PATH;
         if (!path) {
-            this.println(
-                col('red', "error: "),
-                `${cmd}: command not found`
-            );
+            this.env.error(`${cmd}: command not found`);
             return 1;
         }
         path = path.split(":");
@@ -426,13 +487,10 @@ class Terminal {
         exe = exe.filter(p => p && p.type === 'exe');
 
         if (exe.length === 0) {
-            this.println(
-                col('red', "error: "),
-                `${cmd}: command not found`
-            );
+            this.env.error(`${cmd}: command not found`);
             return 1;
         }
-        return exe[0].value([exe[0].path.path, ...args]);
+        return exe[0].value(this.env.inherit([exe[0].path.path, ...args]));
     }
 
     /**
@@ -456,8 +514,8 @@ class Terminal {
      */
     prompt1() {
         let prompt = jinux.getEnv("PS1") ?? `\\u@\\h \\w$ `;
-        this.print(this.parsePrompt(prompt));
-        this.print("<span></span>");
+        this.env.print(this.parsePrompt(prompt));
+        this.env.print("<span></span>");
         this.dis_input = this.display.lastElementChild;
     }
 
@@ -475,19 +533,13 @@ class Terminal {
      */
     cd(args) {
         if (args.length > 2) {
-            this.println(
-                col('red', "error: "),
-                `Unexpected agument '${args[1]}'`
-            );
+            this.env.error(`Unexpected agument '${args[1]}'`);
             return 1;
         }
         if (args.length === 0) {
             let dir = new Path("~").resolve();
             if (dir.type() !== 'dir') {
-                this.println(
-                    col('red', "error: "),
-                    `'${dir.path}' is not a directory`
-                );
+                this.env.error(`'${dir.path}' is not a directory`);
                 return 1;
             }
             jinux.cwd = dir;
@@ -495,10 +547,7 @@ class Terminal {
         }
         let dir = new Path(args[0]).resolve();
         if (dir.type() !== 'dir') {
-            this.println(
-                col('red', "error: "),
-                `'${dir.path}' is not a directory`
-            );
+            this.env.error(`'${dir.path}' is not a directory`);
             return 1;
         }
         jinux.cwd = dir;
@@ -510,7 +559,7 @@ class Terminal {
      * @param {[String]} args command line arguments
      */
     echo(args) {
-        this.println(args.join(" "));
+        this.env.println(args.join(" "));
     }
 
     /**
@@ -518,7 +567,7 @@ class Terminal {
      * @param {[String]} _args unused
      */
     help(_args) {
-        this.println(
+        this.env.println(
 `Welcome to ${col('g i', "jsh")} help by ${signature}
 Version: ${version}
 
