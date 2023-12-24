@@ -7,7 +7,7 @@
     --dark-green:   #383;
     --yellow:       #ff5;
     --dark-yellow:  #883;
-    --blue:         #55f;
+    --blue:         #308eea;
     --dark-blue:    #338;
     --magenta:      #f5f;
     --dark-magenta: #838;
@@ -49,6 +49,7 @@ body {
     font-family: monospace;
     white-space: pre-wrap;
     word-break: break-all;
+    font-size: large;
 }
 
 .term {
@@ -73,7 +74,7 @@ body {
 }
 
 .bold {
-    font-style: bold;
+    font-weight: bold;
 }
 
 .italic, .i {
@@ -108,6 +109,10 @@ body {
     color: var(--yellow);
 }
 
+.blue-fg, .blue, .b {
+    color: var(--blue);
+}
+
 .magenta-fg, .magenta, .m {
     color: var(--magenta);
 }
@@ -126,6 +131,10 @@ body {
 
 .dark-yellow-fg, .dyellow, .dy {
     color: var(--dark-yellow);
+}
+
+.dark-blue-fg, .dblue, .db {
+    color: var(--dark-blue);
 }
 
 .dark-magenta-fg, .dmagenta, .dm {
@@ -164,6 +173,10 @@ body {
     background-color: var(--yellow);
 }
 
+.blue-bg, .blueb, .bb {
+    color: var(--blue);
+}
+
 .magenta-bg, .magentab, .mb {
     background-color: var(--magenta);
 }
@@ -182,6 +195,10 @@ body {
 
 .dark-yellow-bg, .dyellowb, .dyb {
     background-color: var(--dark-yellow);
+}
+
+.dark-blue-bg, .dblueb, .dbb {
+    color: var(--dark-blue);
 }
 
 .dark-magenta-bg, .dmagentab, .dmb {

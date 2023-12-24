@@ -1,3 +1,13 @@
+function prepDir(path, dir) {
+    dir.path = path;
+    if (dir.type !== 'dir') {
+        return;
+    }
+    Object.entries(dir.value).forEach(([n, d]) => {
+        prepDir(path.join(Path(n)), d);
+    });
+}
+
 // jinux is not unix
 var jinux = {
     root: {
@@ -8,6 +18,12 @@ var jinux = {
     loc_env: {},
     cwd: Path('/'),
 
+    init() {
+        prepDir(Path("/"), this.root);
+        let home = jinux.getEnv("HOME");
+        jinux.cwd = home ? Path(home) : Path("/");
+    },
+
     getEnv(name) {
         if (this.env[name]) {
             return this.env[name];
@@ -16,10 +32,8 @@ var jinux = {
     },
 };
 
-var ansi = {
-    col(c, s) {
-        return `<span class="${c}">${s}</span>`;
-    }
+function col(c, s) {
+    return `<span class="${c}">${s}</span>`;
 }
 
 var version = "v0.1.0";
@@ -75,7 +89,13 @@ function Path(path) {
         /// joins two paths
         join(other) {
             if (other.path.startsWith("/")) {
+                if (this.path === "/") {
+                    return other.path;
+                }
                 return Path(this.path + other.path);
+            }
+            if (this.path === "/") {
+                return Path("/" + other.path);
             }
             return Path(this.path + "/" + other.path);
         },
@@ -282,23 +302,24 @@ function Terminal(show, input) {
             let path = jinux.env.PATH;
             if (!path) {
                 this.println(
-                    ansi.col('red', "error: "),
+                    col('red', "error: "),
                     `${cmd}: command not found`
                 );
                 return;
             }
+            path = path.split(":");
 
             let exe = path.map(p => Path(p).join(Path(cmd)).locate());
             exe = exe.filter(p => p && p.type === 'exe');
 
             if (exe.length === 0) {
                 this.println(
-                    ansi.col('red', "error: "),
+                    col('red', "error: "),
                     `${cmd}: command not found`
                 );
                 return 1;
             }
-            exe[0].value(args);
+            exe[0].value([exe[0].path.path, ...args]);
         },
 
         parsePrompt(str) {
@@ -326,7 +347,7 @@ function Terminal(show, input) {
         cd(args) {
             if (args.length > 2) {
                 this.println(
-                    ansi.col('red', "error: "),
+                    col('red', "error: "),
                     `Unexpected agument '${args[1]}'`
                 );
                 return 1;
@@ -335,7 +356,7 @@ function Terminal(show, input) {
                 let dir = Path("~").resolve();
                 if (dir.type() !== 'dir') {
                     this.println(
-                        ansi.col('red', "error: "),
+                        col('red', "error: "),
                         `'${dir.path}' is not a directory`
                     );
                     return 1;
@@ -346,7 +367,7 @@ function Terminal(show, input) {
             let dir = Path(args[0]).resolve();
             if (dir.type() !== 'dir') {
                 this.println(
-                    ansi.col('red', "error: "),
+                    col('red', "error: "),
                     `'${dir.path}' is not a directory`
                 );
                 return 1;
@@ -361,27 +382,26 @@ function Terminal(show, input) {
 
         help(_args) {
             this.println(
-`Welcome to ${ansi.col('g i', "jsh")} help by ${signature}
+`Welcome to ${col('g i', "jsh")} help by ${signature}
 Version: ${version}
 
-${ansi.col('g', "Commands:")}
-  ${ansi.col('y', "help")}
+${col('g', "Commands:")}
+  ${col('y', "help")}
     shows this help
 
-  ${ansi.col('y', "cd")} ${ansi.col('gr', "[directory]")}
+  ${col('y', "cd")} ${col('gr', "[directory]")}
     changes the working directory to the given directory
 
-  ${ansi.col('y', "echo")} ${ansi.col('gr', "[arguments...]")}
+  ${col('y', "echo")} ${col('gr', "[arguments...]")}
     prints the arguments with spaces between them
 
-  ${ansi.col('y', "&lt;executable in one of the paths in $PATH&gt")} \
-${ansi.col('gr', "[arguments...]")}
+  ${col('y', "&lt;executable in one of the paths in $PATH&gt")} \
+${col('gr', "[arguments...]")}
     executes the program with the arguments
 `
             );
         }
     };
 
-    res.init();
     return res;
 }
