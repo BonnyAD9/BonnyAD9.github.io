@@ -937,7 +937,7 @@ ${col('g', "Commands:")}
 ${col('gr', "[arguments...]")}
     executes the program with the arguments
 
-  ${col('y', "history")} \
+  ${col('y', "history")}
     shows the command history
 `
         );
