@@ -5,6 +5,64 @@ class FSItem {
     type;
     /** @type {String | [String: FSItem] | function(Env): [Number]} */
     value;
+
+    /**
+     *
+     * @param {String} name
+     * @returns {FSItem | null}
+     */
+    createFile(name) {
+        createFile(this, name);
+    }
+
+    /**
+     *
+     * @param {String} name
+     * @returns {FSItem | null}
+     */
+    createDir(name) {
+        createDir(this, name);
+    }
+}
+
+/**
+ *
+ * @param {FSItem} dir
+ * @param {String} name
+ * @returns {FSItem | null}
+ */
+function createFile(dir, name) {
+    if (dir.type !== 'dir') {
+        return null;
+    }
+    console.log(dir);
+    dir.value[name] = {
+        path: dir.path.join(new Path(name)),
+        type: 'file',
+        value: "",
+    };
+    return dir.value[name];
+}
+
+/**
+ *
+ * @param {FSItem} dir
+ * @param {String} name
+ * @returns {FSItem | null}
+ */
+function createDir(dir, name) {
+    if (dir.type !== 'dir') {
+        return null;
+    }
+    dir.value[name] = {
+        path: dir.path.join(new Path(name)),
+        type: 'dir',
+        value: "",
+    };
+
+    dir.value[name].createFile = n => createFile(dir.value[name], n);
+    dir.value[name].createDir = n => createDir(dir.value[name], n);
+    return dir.value[name];
 }
 
 class Env {
@@ -520,6 +578,8 @@ function prepDir(path, dir) {
     if (dir.type !== 'dir') {
         return;
     }
+    dir.createDir = n => createDir(dir, n);
+    dir.createFile = n => createFile(dir, n);
     Object.entries(dir.value).forEach(([n, d]) => {
         prepDir(path.join(new Path(n)), d);
     });
@@ -575,6 +635,11 @@ class Terminal {
     sel = [0, 0];
     /** @type {[Number]} */
     downPos = [0, 0];
+
+    /** @type {Int} */
+    his_pos = 0;
+    /** @type {[String]} */
+    history = [""];
 
     /**
      * Creates new terminal.
@@ -656,6 +721,26 @@ class Terminal {
                 this.prompt1();
                 this.input.value = "";
                 onValueChange();
+            } else if (e.key === 'ArrowUp') {
+                if (this.his_pos !== 0) {
+                    --this.his_pos;
+                    this.input.value = this.history[this.his_pos];
+                    setTimeout(() => {
+                        this.input.selectionStart = 10000;
+                        this.input.selectionEnd = 10000;
+                    }, 0);
+                    onValueChange();
+                }
+            } else if (e.key === 'ArrowDown') {
+                if (this.his_pos + 1 < this.history.length) {
+                    ++this.his_pos;
+                    this.input.value = this.history[this.his_pos];
+                    setTimeout(() => {
+                        this.input.selectionStart = 10000;
+                        this.input.selectionEnd = 10000;
+                    }, 0);
+                    onValueChange();
+                }
             }
             return false;
         };
@@ -670,7 +755,7 @@ class Terminal {
             this.dis_input.innerHTML = this.input.value;
         }
 
-        this.input.addEventListener('keypress', keyPress);
+        this.input.addEventListener('keydown', keyPress);
         this.input.addEventListener('input', onValueChange);
         this.input.addEventListener('focus', onValueChange);
         this.input.addEventListener('blur', onBlur);
@@ -684,10 +769,40 @@ class Terminal {
      * Executes the given command in the terminal.
      * @param {String | [String]} command command to execute. When array, it is
      *                            interpreted as [command, ...args].
+     */
+    updateHistory(command) {
+        if (this.history[this.history.length - 1] === "") {
+            this.history[this.history.length - 1] = command;
+        } else {
+            this.history.push(command);
+        }
+        this.his_pos = this.history.length;
+        this.history.push("");
+        let f = new Path("~").locate();
+        if (!f) {
+            return;
+        }
+        if (!f.value[".jsh_history"]) {
+            f.createFile(".jsh_history").value = this.history.join("\n");
+        } else if (f.value[".jsh_history"].type === 'file') {
+            f.value[".jsh_history"].value = this.history.join("\n");
+        }
+    }
+
+    /**
+     * Executes the given command in the terminal.
+     * @param {String | [String]} command command to execute. When array, it is
+     *                            interpreted as [command, ...args].
      * @returns {Number} return value of the command
      */
     execute(command) {
+        this.updateHistory(command);
+
         let cmd = new Command(this.env.inherit([]), command);
+
+        if (!cmd.cmd) {
+            return 0;
+        }
 
         switch (cmd.cmd) {
             case "cd":
@@ -696,6 +811,8 @@ class Terminal {
                 return this.echo(cmd.env.args);
             case "help":
                 return this.help(cmd.env.args);
+            case "history":
+                return this.show_history(cmd.env.args);
         }
 
         let path = jinux.env.PATH;
@@ -785,6 +902,16 @@ class Terminal {
      */
     echo(args) {
         this.env.println(args.join(" "));
+        return 0;
+    }
+
+    /**
+     * Prints the command history
+     * @param {[String]} args
+     */
+    show_history(_args) {
+        this.env.print(this.history.join("\n"));
+        return 0;
     }
 
     /**
@@ -809,7 +936,11 @@ ${col('g', "Commands:")}
   ${col('y', "&lt;executable in one of the paths in $PATH&gt")} \
 ${col('gr', "[arguments...]")}
     executes the program with the arguments
+
+  ${col('y', "history")} \
+    shows the command history
 `
         );
+        return 0;
     }
 }
