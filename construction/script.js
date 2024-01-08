@@ -223,6 +223,7 @@ jinux.root.value = {
 jinux.env.PATH = "/usr/bin/";
 jinux.env.PS1 = `${col('y', "\\u@\\h")} ${col('m', "\\w")}${col('gr', "$")} `;
 jinux.env.HOME = "/home/host";
+jinux.env.USER = "host";
 
 jinux.init();
 term.init();

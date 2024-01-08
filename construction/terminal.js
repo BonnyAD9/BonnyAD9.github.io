@@ -93,6 +93,219 @@ class Env {
     }
 }
 
+class CharReader {
+    /** @type {[String]} */
+    chars;
+
+    /**
+     *
+     * @param {String} str
+     */
+    constructor(str) {
+        this.chars = str.split("").reverse();
+    }
+
+    /**
+     *
+     * @returns {String | null}
+     */
+    cur() {
+        return this.chars.length == 0 ? null : this.chars[this.chars.length - 1];
+    }
+
+    /**
+     *
+     * @returns {String | null}
+     */
+    next() {
+        let c = this.chars.pop()
+        return c ? c : null;
+    }
+
+    /**
+     *
+     * @param {String} str
+     */
+    prepend(str) {
+        str.split("").reverse().forEach(c => this.chars.push(c));
+    }
+}
+
+class Command {
+    /** @type {Env} */
+    env;
+    /** @type {String} */
+    cmd;
+
+    /**
+     *
+     * @param {Env} env
+     * @param {String | [String]} arg
+     * @returns
+     */
+    constructor(env, arg) {
+        if (arg.constructor === Array) {
+            let [cmd, ags] = arg;
+            this.cmd = cmd;
+            this.env = env;
+            this.env.args = ags;
+            return;
+        }
+
+        let args = new CharReader(arg);
+
+        /**
+         *
+         * @param {CharReader} args
+         */
+        const readQuote = args => {
+            /** @type {String} */
+            let res = "";
+            while (args.next()) {
+                switch (args.cur()) {
+                    case "'":
+                        args.next();
+                        return res;
+                    default:
+                        res += args.cur();
+                        break;
+                }
+            }
+            return res;
+        };
+
+        /**
+         *
+         * @param {CharReader} args
+         */
+        const readVariable = args => {
+            /** @type {String} */
+            let name = "";
+            args.next();
+
+            if (args.cur() === "{") {
+                while (args.next()) {
+                    if (args.cur() === "}") {
+                        args.next();
+                        return env.getVar(name) ?? "";
+                    }
+                    name += args.cur();
+                }
+                return env.getVar(name) ?? "";
+            }
+
+            while (args.cur()) {
+                let code = args.cur().charCodeAt(0);
+                if (!(code > 47 && code < 58) && // numeric (0-9)
+                    !(code > 64 && code < 91) && // upper alpha (A-Z)
+                    !(code > 96 && code < 123)   // lower alpha (a-z)
+                ) {
+                    return env.getVar(name) ?? "";
+                }
+
+                name += args.cur();
+                args.next();
+            }
+
+            return env.getVar(name) ?? "";
+        };
+
+        /**
+         *
+         * @param {CharReader} args
+         */
+        const readDQuote = args => {
+            /**
+             *
+             * @param {CharReader} args
+             */
+            const escDQuote = args => {
+                /** @type {String} */
+                switch (args.next()) {
+                    case "\\":
+                        return "\\";
+                    case "\"":
+                        return "\"";
+                    case "\\$":
+                        return "$";
+                    case null:
+                        return "\\";
+                    default:
+                        return "\\" + args.cur();
+                }
+            }
+
+            /** @type {String} */
+            let res = "";
+            while (args.next()) {
+                switch (args.cur()) {
+                    case "\"":
+                        args.next();
+                        return res;
+                    case "\\":
+                        res += escDQuote(args);
+                        break;
+                    case "$":
+                        res += readVariable(args);
+                    default:
+                        res += args.cur();
+                        break;
+                }
+            }
+        };
+
+        /**
+         *
+         * @param {CharReader} args
+         */
+        const readEsc = args => {
+            return args.next() ?? "";
+        }
+
+        /** @type {[String]} */
+        let parted = [];
+        /** @type {String} */
+        let cur = "";
+
+        while (args.cur()) {
+            switch (args.cur()) {
+                case " ":
+                    if (cur.length !== 0) {
+                        parted.push(cur);
+                        cur = "";
+                        args.next();
+                    }
+                    break;
+                case "'":
+                    cur += readQuote(args);
+                    break;
+                case "\"":
+                    cur += readDQuote(args);
+                    break;
+                case "$":
+                    args.prepend(readVariable(args));
+                    break;
+                case "\\":
+                    cur += readEsc(args);
+                    break;
+                default:
+                    cur += args.cur();
+                    args.next();
+                    break;
+            }
+        }
+
+        if (cur.length !== 0) {
+            parted.push(cur);
+        }
+
+        let [cmd, ...ags] = parted;
+        this.cmd = cmd;
+        this.env = env;
+        this.env.args = ags;
+    }
+}
+
 /**
  * Applies styles to the given string.
  * @param {String} c style of the string
@@ -474,38 +687,35 @@ class Terminal {
      * @returns {Number} return value of the command
      */
     execute(command) {
-        if (command.constructor !== Array) {
-            command = command.split(" ").filter(c => c.length !== 0);
-        }
-        if (command.length == 0) {
-            return 0;
-        }
-        let [cmd, ...args] = command;
+        let cmd = new Command(this.env.inherit([]), command);
 
-        switch (cmd) {
+        switch (cmd.cmd) {
             case "cd":
-                return this.cd(args);
+                return this.cd(cmd.env.args);
             case "echo":
-                return this.echo(args);
+                return this.echo(cmd.env.args);
             case "help":
-                return this.help(args);
+                return this.help(cmd.env.args);
         }
 
         let path = jinux.env.PATH;
         if (!path) {
-            this.env.error(`${cmd}: command not found`);
+            this.env.error(`${cmd.cmd}: command not found`);
             return 1;
         }
         path = path.split(":");
 
-        let exe = path.map(p => new Path(p).join(new Path(cmd)).locate());
+        let exe = path.map(p => new Path(p).join(new Path(cmd.cmd)).locate());
         exe = exe.filter(p => p && p.type === 'exe');
 
         if (exe.length === 0) {
-            this.env.error(`${cmd}: command not found`);
+            this.env.error(`${cmd.cmd}: command not found`);
             return 1;
         }
-        return exe[0].value(this.env.inherit([exe[0].path.path, ...args]));
+
+        cmd.env.args = [exe[0].path.path, ...cmd.env.args];
+
+        return exe[0].value(cmd.env);
     }
 
     /**
@@ -518,7 +728,7 @@ class Terminal {
             .replace("\\h", "jinux")
             .replace("\\n", "\n")
             .replace("\\s", "jsh")
-            .replace("\\u", "host")
+            .replace("\\u", this.env.getVar("USER") ?? "")
             .replace("\\v", version)
             .replace("\\w", jinux.cwd.skipStart(new Path("~").absolute()).path)
             .replace("\\W", jinux.cwd.path);
