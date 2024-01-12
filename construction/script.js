@@ -89,18 +89,24 @@ let mkdir = `
  * @returns exit code
  */
 function main(env) {
-    if (env.args.length != 2) {
+    if (env.args.length === 1) {
         env.error("Invalid number of arguments");
         return 1;
     }
 
-    let path = new Path(env.args[1]);
-    let par = path.parent().createDir(path.name());
-    if (!par) {
-        env.error("Failed to create the directory");
-    }
+    let ret = 0;
 
-    return 0;
+    let [_, ...args] = env.args;
+    args.forEach(a => {
+        let path = new Path(a);
+        let par = path.parent().createDir(path.name());
+        if (!par) {
+            env.error("Failed to create the directory '" + path.path + "'");
+            ret = 1;
+        }
+    });
+
+    return ret;
 }
 `;
 
