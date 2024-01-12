@@ -932,6 +932,15 @@ class Terminal {
         const onClick = _e => {
             if (document.getSelection().toString().length === 0) {
                 this.input.focus({preventScroll: true});
+                setTimeout(() => {
+                    let car = this.display.querySelector(".caret");
+                    if (car) {
+                        car.scrollIntoView(false);
+                        window.scrollBy(0, 5);
+                    } else {
+                        window.scrollTo(0, document.body.scrollHeight);
+                    }
+                }, 0);
             }
         };
 
