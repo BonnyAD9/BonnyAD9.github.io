@@ -406,6 +406,7 @@ class Command {
             switch (args.cur()) {
                 case ">":
                     readRedirect(args);
+                    break;
                 default:
                     parted.push(readItem(args));
                     break;

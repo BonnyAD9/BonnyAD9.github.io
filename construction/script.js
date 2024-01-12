@@ -117,6 +117,7 @@ let cat = `
  * @returns exit code
  */
 function main(env) {
+    console.log(env);
     if (env.args.length != 2) {
         env.error("Invalid number of arguments");
         return 1;
