@@ -920,7 +920,8 @@ class Terminal {
             setTimeout(() => {
                 let car = this.display.querySelector(".caret");
                 if (car) {
-                    car.scrollIntoView();
+                    car.scrollIntoView(false);
+                    window.scrollBy(0, 5);
                 } else {
                     window.scrollTo(0, document.body.scrollHeight);
                 }
