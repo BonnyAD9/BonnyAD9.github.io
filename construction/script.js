@@ -138,6 +138,47 @@ function main(env) {
 }
 `;
 
+let chmod = `
+/**
+ * Add/remove execute privilages
+ * @param {Env} env environment
+ * @returns exit code
+ */
+function main(env) {
+    if (env.args.length !== 3) {
+        env.error("Invalid number of arguments");
+        return 1;
+    }
+
+    /** @type {Boolean} */
+    let val;
+    switch (env.args[1]) {
+        case "+x":
+            val = true;
+            break;
+        case "-x":
+            val = false;
+        default:
+            env.error("Invalid argument '" + env.args[1] + "'");
+            return 1;
+    }
+
+    let file = new Path(env.args[2]).locate();
+    if (!file) {
+        env.error("No such file: " + env.args[2]);
+        return 1;
+    }
+
+    if (file.type !== 'file') {
+        env.error("'" + env.args[2] + "' is not a file.");
+        return 1;
+    }
+
+    file.exe = val;
+    return 0;
+}
+`
+
 let title = '\
        __      __         __       ___          __              __    \n\
       / /___ _/ /____  __/ /_     /   |  ____  / /_____  ____  /_/___ \n\
@@ -194,6 +235,11 @@ jinux.root.value = {
                         type: 'file',
                         exe: true,
                         value: cat,
+                    },
+                    chmod: {
+                        type: 'file',
+                        exe: true,
+                        value: chmod,
                     }
                 }
             }

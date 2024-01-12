@@ -6,7 +6,7 @@ class FSItem {
     /** @type {String | [String: FSItem] | function(Env): [Number]} */
     value;
     /** @type {Boolean} */
-    exec = false;
+    exe = false;
 
     /**
      *
@@ -951,6 +951,31 @@ class Terminal {
     }
 
     /**
+     *
+     * @param {String} name
+     * @returns {Path}
+     */
+    findInPath(name) {
+        let path = jinux.env.PATH;
+        if (!path) {
+            return null;
+        }
+        path = path.split(":");
+
+        /** @type {[FSItem]} */
+        let exe = path.map(p => new Path(p).join(new Path(name)).locate());
+        exe = exe.filter(p => {
+            return p && ((p.type === 'file' && p.exe) || p.type === 'exe');
+        });
+
+        if (exe.length === 0) {
+            return null;
+        }
+
+        return exe[0];
+    }
+
+    /**
      * Executes the given command in the terminal.
      * @param {String | [String]} command command to execute. When array, it is
      *                            interpreted as [command, ...args].
@@ -988,38 +1013,35 @@ class Terminal {
                 return this.show_history(cmd.env);
         }
 
-        let path = jinux.env.PATH;
-        if (!path) {
+        /** @type {FSItem} */
+        let prog = new Path(cmd.cmd).locate();
+        if (!prog
+            || (prog.type !== 'exe' && (prog.type !== 'file' || !prog.exe))
+            || cmd.cmd.indexOf("/") === -1
+        ) {
+            prog = this.findInPath(cmd.cmd);
+        }
+
+        if (!prog) {
             this.env.error(`${cmd.cmd}: command not found`);
             return 1;
         }
-        path = path.split(":");
 
-        let exe = path.map(p => new Path(p).join(new Path(cmd.cmd)).locate());
-        exe = exe.filter(p => {
-            return p && ((p.type === 'file' && p.exe) || p.type === 'exe');
-        });
-
-        if (exe.length === 0) {
-            this.env.error(`${cmd.cmd}: command not found`);
-            return 1;
-        }
-
-        cmd.env.args = [exe[0].path.path, ...cmd.env.args];
+        cmd.env.args = [prog.path.path, ...cmd.env.args];
 
         if (!cmd.setStdout(true)) {
             this.env.error("Failed to redirect");
         }
 
-        if (exe[0].type === 'exe') {
-            return exe[0].value(cmd.env);
+        if (prog.type === 'exe') {
+            return prog.value(cmd.env);
         }
 
         try {
             let exit_code = Function("__env", `"use strict";
                 try {
-                    ${exe[0].value}
-                    main(__env);
+                    ${prog.value}
+                    return main(__env);
                 } catch {
                     return 2;
                 }
