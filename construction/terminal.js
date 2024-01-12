@@ -948,9 +948,14 @@ class Terminal {
             this.dis_input.innerHTML = this.input.value;
         }
 
+        const onFocus = e => {
+            onValueChange(e);
+            e.preventDefault();
+        }
+
         this.input.addEventListener('keydown', keyPress);
         this.input.addEventListener('input', onValueChange);
-        this.input.addEventListener('focus', onValueChange);
+        this.input.addEventListener('focus', onFocus);
         this.input.addEventListener('blur', onBlur);
         document.addEventListener('selectionchange', onChange);
         this.display.addEventListener('click', onClick);
