@@ -205,6 +205,14 @@ class Command {
     env;
     /** @type {String} */
     cmd;
+    /** @type {Command | null} */
+    //next = null;
+    /** @type {String | null} */
+    //next_type = null;
+    /** @type {String | null} */
+    stdout = null;
+    /** @type {String | null} */
+    // stderr = null;
 
     /**
      *
@@ -316,11 +324,14 @@ class Command {
                         break;
                     case "$":
                         res += readVariable(args);
+                        break;
                     default:
                         res += args.cur();
                         break;
                 }
             }
+
+            return res;
         };
 
         /**
@@ -333,47 +344,110 @@ class Command {
             return c ? c : "";
         }
 
-        /** @type {[String]} */
-        let parted = [];
-        /** @type {String} */
-        let cur = "";
-
-        while (args.cur()) {
-            switch (args.cur()) {
-                case " ":
-                    if (cur.length !== 0) {
-                        parted.push(cur);
-                        cur = "";
-                        args.next();
-                    }
-                    break;
-                case "'":
-                    cur += readQuote(args);
-                    break;
-                case "\"":
-                    cur += readDQuote(args);
-                    break;
-                case "$":
-                    args.prepend(readVariable(args));
-                    break;
-                case "\\":
-                    cur += readEsc(args);
-                    break;
-                default:
-                    cur += args.cur();
-                    args.next();
-                    break;
+        /**
+         *
+         * @param {CharReader} args
+         */
+        const readRedirect = args => {
+            args.next();
+            while (args.cur() === " ") {
+                args.next();
             }
+
+            if (!args.cur()) {
+                return;
+            }
+
+            this.stdout = readItem(args);
         }
 
-        if (cur.length !== 0) {
-            parted.push(cur);
+        /**
+         *
+         * @param {CharReader} args
+         */
+        const readItem = args => {
+            /** @type {String} */
+            let cur = "";
+
+            while (args.cur() && args.cur() !== " ") {
+                switch (args.cur()) {
+                    case "'":
+                        cur += readQuote(args);
+                        break;
+                    case "\"":
+                        cur += readDQuote(args);
+                        break;
+                    case "$":
+                        args.prepend(readVariable(args));
+                        break;
+                    case "\\":
+                        cur += readEsc(args);
+                        break;
+                    default:
+                        cur += args.cur();
+                        args.next();
+                        break;
+                }
+            }
+
+            return cur;
+        }
+
+        /** @type {[String]} */
+        let parted = [];
+
+        while (args.cur()) {
+            while (args.cur() === " ") {
+                args.next();
+            }
+            if (!args.cur()) {
+                break;
+            }
+            switch (args.cur()) {
+                case ">":
+                    readRedirect(args);
+                default:
+                    parted.push(readItem(args));
+                    break;
+            }
         }
 
         let [cmd, ...ags] = parted;
         this.cmd = cmd;
         this.env = env;
         this.env.args = ags;
+    }
+
+    /**
+     *
+     * @param {Boolean} clear true if the file should be empty
+     * @returns
+     */
+    setStdout(clear) {
+        if (!this.stdout) {
+            return true;
+        }
+
+        let file = new Path(this.stdout).open();
+        if (!file) {
+            return false;
+        }
+
+        if (clear) {
+            file.value = "";
+        }
+
+        const printFun = (...a) => {
+            a.forEach(s => {
+                if (!s.constructor || s.constructor !== TermCommand) {
+                    file.value += s;
+                }
+            });
+        }
+
+        this.env.stdout = printFun;
+
+        return true;
     }
 }
 
@@ -478,6 +552,25 @@ class Path {
         }
 
         return dir.createFile(name);
+    }
+
+    /**
+     *
+     * @param {String} name
+     * @returns {FSItem | null}
+     */
+    open() {
+        let par = this.parent().locate();
+        let name = this.name();
+        if (!par) {
+            return null;
+        }
+
+        if (par.value[name] && par.value[name].type == 'file') {
+            return par.value[name];
+        }
+
+        return par.createFile(name);
     }
 
     /**
@@ -874,13 +967,25 @@ class Terminal {
 
         switch (cmd.cmd) {
             case "cd":
-                return this.cd(cmd.env.args);
+                if (!cmd.setStdout(true)) {
+                    this.env.error("Failed to redirect");
+                }
+                return this.cd(cmd.env);
             case "echo":
-                return this.echo(cmd.env.args);
+                if (!cmd.setStdout(true)) {
+                    this.env.error("Failed to redirect");
+                }
+                return this.echo(cmd.env);
             case "help":
-                return this.help(cmd.env.args);
+                if (!cmd.setStdout(true)) {
+                    this.env.error("Failed to redirect");
+                }
+                return this.help(cmd.env);
             case "history":
-                return this.show_history(cmd.env.args);
+                if (!cmd.setStdout(true)) {
+                    this.env.error("Failed to redirect");
+                }
+                return this.show_history(cmd.env);
         }
 
         let path = jinux.env.PATH;
@@ -901,6 +1006,10 @@ class Terminal {
         }
 
         cmd.env.args = [exe[0].path.path, ...cmd.env.args];
+
+        if (!cmd.setStdout(true)) {
+            this.env.error("Failed to redirect");
+        }
 
         if (exe[0].type === 'exe') {
             return exe[0].value(cmd.env);
@@ -960,26 +1069,26 @@ class Terminal {
 
     /**
      * Changes the working directory.
-     * @param {[String]} args command arguments
+     * @param {Env} env command arguments
      * @returns {Number} exit code.
      */
-    cd(args) {
-        if (args.length > 2) {
-            this.env.error(`Unexpected agument '${args[1]}'`);
+    cd(env) {
+        if (env.args.length > 2) {
+            env.error(`Unexpected agument '${env.args[1]}'`);
             return 1;
         }
-        if (args.length === 0) {
+        if (env.args.length === 0) {
             let dir = new Path("~").absolute();
             if (dir.type() !== 'dir') {
-                this.env.error(`'${dir.path}' is not a directory`);
+                env.error(`'${dir.path}' is not a directory`);
                 return 1;
             }
             jinux.cwd = dir;
             return 0;
         }
-        let dir = new Path(args[0]).absolute();
+        let dir = new Path(env.args[0]).absolute();
         if (dir.type() !== 'dir') {
-            this.env.error(`'${dir.path}' is not a directory`);
+            env.error(`'${dir.path}' is not a directory`);
             return 1;
         }
         jinux.cwd = dir;
@@ -988,28 +1097,28 @@ class Terminal {
 
     /**
      * Prints to the screen
-     * @param {[String]} args command line arguments
+     * @param {Env} env command line arguments
      */
-    echo(args) {
-        this.env.println(args.join(" "));
+    echo(env) {
+        env.println(env.args.join(" "));
         return 0;
     }
 
     /**
      * Prints the command history
-     * @param {[String]} args
+     * @param {Env} env
      */
-    show_history(_args) {
-        this.env.print(this.history.join("\n"));
+    show_history(env) {
+        env.print(this.history.join("\n"));
         return 0;
     }
 
     /**
      * Prints help about the terminal.
-     * @param {[String]} _args unused
+     * @param {Env} env unused
      */
-    help(_args) {
-        this.env.println(
+    help(env) {
+        env.println(
 `Welcome to ${col('g i', "jsh")} help by ${signature}
 Version: ${version}
 
