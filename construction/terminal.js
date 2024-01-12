@@ -5,6 +5,8 @@ class FSItem {
     type;
     /** @type {String | [String: FSItem] | function(Env): [Number]} */
     value;
+    /** @type {Boolean} */
+    exec = false;
 
     /**
      *
@@ -35,7 +37,11 @@ function createFile(dir, name) {
     if (dir.type !== 'dir') {
         return null;
     }
-    console.log(dir);
+
+    if (dir.value[name]) {
+        return null;
+    }
+
     dir.value[name] = {
         path: dir.path.join(new Path(name)),
         type: 'file',
@@ -54,6 +60,11 @@ function createDir(dir, name) {
     if (dir.type !== 'dir') {
         return null;
     }
+
+    if (dir.value[name]) {
+        return null;
+    }
+
     dir.value[name] = {
         path: dir.path.join(new Path(name)),
         type: 'dir',
@@ -442,6 +453,34 @@ class Path {
     }
 
     /**
+     *
+     * @param {String} name
+     * @returns {FSItem | null}
+     */
+    createDir(name) {
+        let dir = this.locate();
+        if (!dir) {
+            return null;
+        }
+
+        return dir.createDir(name);
+    }
+
+    /**
+     *
+     * @param {String} name
+     * @returns {FSItem | null}
+     */
+    createFile(name) {
+        let dir = this.locate();
+        if (!dir) {
+            return null;
+        }
+
+        return dir.createFile(name);
+    }
+
+    /**
      * Gets the last component of the path.
      * @returns {String} The last component of the path.
      */
@@ -624,6 +663,23 @@ function mkPath(path) {
     return new Path(path);
 }
 
+class TermCommand {
+    /** @type {String} */
+    cmd;
+
+    /**
+     *
+     * @param {String} cmd
+     */
+    constructor(cmd) {
+        this.cmd = String(cmd);
+    }
+}
+
+const TERM = {
+    clear: new TermCommand('clear'),
+};
+
 class Terminal {
     /** @type {HTMLElement} */
     display;
@@ -657,7 +713,17 @@ class Terminal {
      * Initializes the terminal.
      */
     init() {
-        const print = (...s) => s.forEach(s => this.display.innerHTML += s);
+        const print = (...s) => s.forEach(s => {
+            if (s.constructor && s.constructor === TermCommand) {
+                switch (s.cmd) {
+                    case 'clear':
+                        this.clear();
+                        break;
+                }
+            } else {
+                this.display.innerHTML += s;
+            }
+        });
         this.env = new Env(jinux.cwd, [], print, print);
 
         const onValueChange = _e => {
@@ -825,7 +891,9 @@ class Terminal {
         path = path.split(":");
 
         let exe = path.map(p => new Path(p).join(new Path(cmd.cmd)).locate());
-        exe = exe.filter(p => p && p.type === 'exe');
+        exe = exe.filter(p => {
+            return p && ((p.type === 'file' && p.exe) || p.type === 'exe');
+        });
 
         if (exe.length === 0) {
             this.env.error(`${cmd.cmd}: command not found`);
@@ -834,7 +902,27 @@ class Terminal {
 
         cmd.env.args = [exe[0].path.path, ...cmd.env.args];
 
-        return exe[0].value(cmd.env);
+        if (exe[0].type === 'exe') {
+            return exe[0].value(cmd.env);
+        }
+
+        try {
+            let exit_code = Function("__env", `"use strict";
+                try {
+                    ${exe[0].value}
+                    main(__env);
+                } catch {
+                    return 2;
+                }
+            `)(cmd.env);
+            if (exit_code === 2) {
+                this.env.error("Program crashed");
+            }
+            return exit_code;
+        } catch (e) {
+            this.env.error("Failed to run the program: ", e);
+            return 2;
+        }
     }
 
     /**

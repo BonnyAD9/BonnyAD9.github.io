@@ -3,20 +3,21 @@ let term = new Terminal(
     document.querySelector(".true-input")
 );
 
+let clear = `
 /**
- * Clears the terminal screen.
+ * Clears the screen
  * @param {Env} env environment
- * @returns {Number} exit code
+ * @returns [Number] exit code
  */
-function clear(env) {
+function main(env) {
     if (env.args.length === 1) {
-        term.clear();
+        env.print(TERM.clear);
         return 0;
     }
     let version = "1.0.0"
     env.println(
-        `Welcome to clear help for clear
-Version: ${version}
+        \`Welcome to clear help for clear
+Version: \${version}
 
 Usage:
   clear
@@ -24,16 +25,17 @@ Usage:
 
   clear <anything>
     shows this help
-`
+\`
     );
 }
-
+`
+let ls = `
 /**
  * Lists the directory items
  * @param {Env} env environment
  * @returns [Number] exit code
  */
-function ls(env) {
+function main(env) {
     if (env.args.length > 2) {
         env.error("ls accepts at most one argument");
         return 1;
@@ -41,7 +43,7 @@ function ls(env) {
     let p = env.args.length <= 1 ? jinux.cwd : new Path(env.args[1]);
     let d = p.locate();
     if (!d) {
-        env.error(`'${p.path}' no such file or directory.`);
+        env.error(\`'\${p.path}' no such file or directory.\`);
         return 1;
     }
 
@@ -52,11 +54,14 @@ function ls(env) {
      */
     function getItem(f) {
         let name = f.path.name();
+        if (f.exe) {
+            return col('g bold', name);
+        }
         switch (f.type) {
             case 'dir':
                 return col('b bold', name);
             case 'exe':
-                return col('g bold', name);
+                return col('g', name);
             case 'link':
                 return col('c bold', name);
             default:
@@ -75,52 +80,37 @@ function ls(env) {
     }
     return 0;
 }
+`;
 
+let mkdir = `
 /**
  * Creates new directory
  * @param {Env} env environment
  * @returns exit code
  */
-function mkdir(env) {
+function main(env) {
     if (env.args.length != 2) {
         env.error("Invalid number of arguments");
         return 1;
     }
 
     let path = new Path(env.args[1]);
-    let name = path.name();
-    let par = path.parent().locate();
-
+    let par = path.parent().createDir(path.name());
     if (!par) {
-        env.error(`Parent directory of '${path.path}' doesn't exist`);
-        return 1;
+        env.error("Failed to create the directory");
     }
-
-    if (par.type !== 'dir') {
-        env.error(`'${par.path}' is not a directory`);
-        return 1;
-    }
-
-    if (par.value[name]) {
-        env.error(`'${path.path}' already exists.`);
-        return 1;
-    }
-
-    par.value[name] = {
-        path: path.absolute(),
-        type: 'dir',
-        value: {},
-    };
 
     return 0;
 }
+`;
 
+let cat = `
 /**
  * Prints the contents of a file
  * @param {Env} env environment
  * @returns exit code
  */
-function cat(env) {
+function main(env) {
     if (env.args.length != 2) {
         env.error("Invalid number of arguments");
         return 1;
@@ -128,18 +118,19 @@ function cat(env) {
 
     let file = new Path(env.args[1]).locate();
     if (!file) {
-        env.error(`file '${env.args[1]}' doesn't exist`);
+        env.error(\`file '\${env.args[1]}' doesn't exist\`);
         return 1;
     }
 
     if (file.type != 'file') {
-        env.error(`'${env.args[1]}' is not a file`);
+        env.error(\`'\${env.args[1]}' is not a file\`);
         return 1;
     }
 
     env.print(file.value);
     return 0;
 }
+`;
 
 let title = '\
        __      __         __       ___          __              __    \n\
@@ -179,19 +170,23 @@ jinux.root.value = {
                 /** @type {FSItem} */
                 value: {
                     clear: {
-                        type: 'exe',
+                        type: 'file',
+                        exe: true,
                         value: clear,
                     },
                     ls: {
-                        type: 'exe',
+                        type: 'file',
+                        exe: true,
                         value: ls,
                     },
                     mkdir: {
-                        type: 'exe',
+                        type: 'file',
+                        exe: true,
                         value: mkdir,
                     },
                     cat: {
-                        type: 'exe',
+                        type: 'file',
+                        exe: true,
                         value: cat,
                     }
                 }
