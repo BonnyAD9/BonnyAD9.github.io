@@ -27,6 +27,17 @@ class FSItem {
     }
 }
 
+function htmlText(s) {
+    let lookup = {
+        '&': "&amp;",
+        '"': "&quot;",
+        '\'': "&apos;",
+        '<': "&lt;",
+        '>': "&gt;"
+    };
+    return s.replace( /[&"'<>]/g, c => lookup[c] );
+}
+
 /**
  *
  * @param {FSItem} dir
@@ -831,28 +842,35 @@ class Terminal {
             this.sel = sel;
 
             let value = this.input.value;
-            let first = value.substring(0, sel[0]);
-            let caret = value
-                .substring(idx, Math.min(idx + 1, value.length));
+            let first = htmlText(value.substring(0, sel[0]));
+            let caret = htmlText(value
+                .substring(idx, Math.min(idx + 1, value.length))
+            );
             if (caret.length === 0) {
                 caret = " ";
             }
             let selected;
-            let second = value.substring(sel[1] + 1, value.length);
+            let second = htmlText(
+                value.substring(sel[1] + 1, value.length)
+            );
             if (idx == sel[0]) {
                 if (idx == sel[1]) {
                     this.dis_input.innerHTML = first
                         +`<span class="caret">${caret}</span>`
                         + second;
                 } else {
-                    selected = value.substring(sel[0] + 1, sel[1] + 1);
+                    selected = htmlText(
+                        value.substring(sel[0] + 1, sel[1] + 1)
+                    );
                     this.dis_input.innerHTML = first
                         + `<span class="caret">${caret}</span>`
                         + `<span class="selected">${selected}</span>`
                         + second;
                 }
             } else {
-                selected = value.substring(sel[0], sel[1]);
+                selected = htmlText(
+                    value.substring(sel[0], sel[1])
+                );
                 this.dis_input.innerHTML = first
                     + `<span class="selected">${selected}</span>`
                     + `<span class="caret">${caret}</span>`
@@ -877,7 +895,7 @@ class Terminal {
 
         const keyPress = e => {
             if (e.key === 'Enter') {
-                this.dis_input.innerHTML = this.input.value;
+                this.dis_input.innerHTML = htmlText(this.input.value);
                 this.env.println();
                 this.execute(this.input.value);
                 this.prompt1();
@@ -1103,7 +1121,7 @@ class Terminal {
         if (env.args.length === 0) {
             let dir = new Path("~").absolute();
             if (dir.type() !== 'dir') {
-                env.error(`'${dir.path}' is not a directory`);
+                env.error(`'${env.args[1]}' is not a directory`);
                 return 1;
             }
             jinux.cwd = dir;
@@ -1111,7 +1129,7 @@ class Terminal {
         }
         let dir = new Path(env.args[0]).absolute();
         if (dir.type() !== 'dir') {
-            env.error(`'${dir.path}' is not a directory`);
+            env.error(`'${env.args[1]}' is not a directory`);
             return 1;
         }
         jinux.cwd = dir;
