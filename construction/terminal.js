@@ -877,11 +877,6 @@ class Terminal {
                     + second;
             }
             let car = this.dis_input.querySelector('.caret');
-            if (car) {
-                car.scrollIntoView();
-            } else {
-                window.scrollTo(0, document.body.scrollHeight);
-            }
         }
 
         const onChange = e => {
@@ -922,6 +917,14 @@ class Terminal {
                     onValueChange();
                 }
             }
+            setTimeout(() => {
+                let car = this.display.querySelector(".caret");
+                if (car) {
+                    car.scrollIntoView();
+                } else {
+                    window.scrollTo(0, document.body.scrollHeight);
+                }
+            }, 0);
             return false;
         };
 
