@@ -918,21 +918,28 @@ class Terminal {
                 }
             }
             setTimeout(() => {
+                console.log("hi");
                 let car = this.display.querySelector(".caret");
                 if (car) {
+                    this.input.style.top = car.offsetTop + car.offsetHeight + "px";
+                    this.input.style.left = car.offsetLeft + "px";
                     car.scrollIntoView(false);
                     window.scrollBy(0, 5);
-                } else {
-                    window.scrollTo(0, document.body.scrollHeight);
                 }
-            }, 0);
-            return false;
+            }, 0)
         };
 
         const onClick = _e => {
             if (document.getSelection().toString().length === 0) {
-                this.input.focus({preventScroll: true});
                 setTimeout(() => {
+                    let car = this.display.querySelector(".caret");
+                    if (car) {
+                        this.input.style.top = car.offsetTop + car.offsetHeight + "px";
+                        this.input.style.left = car.offsetLeft + "px";
+                    }
+                }, 0)
+                this.input.focus();
+                /*setTimeout(() => {
                     let car = this.display.querySelector(".caret");
                     if (car) {
                         car.scrollIntoView(false);
@@ -940,7 +947,7 @@ class Terminal {
                     } else {
                         window.scrollTo(0, document.body.scrollHeight);
                     }
-                }, 0);
+                }, 0);*/
             }
         };
 
