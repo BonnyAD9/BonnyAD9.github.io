@@ -176,8 +176,8 @@ class CharReader {
      * @returns {String | null}
      */
     next() {
-        let c = this.chars.pop()
-        return c ? c : null;
+        this.chars.pop();
+        return this.cur();
     }
 
     /**
@@ -317,7 +317,9 @@ class Command {
          * @param {CharReader} args
          */
         const readEsc = args => {
-            return args.next() ?? "";
+            let c = args.next();
+            args.next();
+            return c ? c : "";
         }
 
         /** @type {[String]} */
