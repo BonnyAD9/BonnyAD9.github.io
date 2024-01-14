@@ -876,7 +876,6 @@ class Terminal {
                     + `<span class="caret">${caret}</span>`
                     + second;
             }
-            let car = this.dis_input.querySelector('.caret');
         }
 
         const onChange = e => {
@@ -918,20 +917,28 @@ class Terminal {
                 }
             }
             let car = this.display.querySelector(".caret");
+            if (!car) {
+                car = this.display.lastChild;
+            }
             if (car) {
                 this.input.style.top =
                     car.offsetTop + car.offsetHeight + "px";
                 this.input.style.left = car.offsetLeft + "px";
-                // TODO: scroll only when necesarry
-                car.scrollIntoView(false);
-                window.scrollBy(0, 5);
+                let relPos = car.offsetTop - window.scrollY;
+                if (relPos > window.innerHeight || relPos < 0) {
+                    car.scrollIntoView(false);
+                    window.scrollBy(0, 5);
+                }
             }
         };
 
         const onClick = _e => {
             if (document.getSelection().toString().length === 0) {
-                this.input.focus();
+                this.input.focus({ preventScroll: true });
                 let car = this.display.querySelector(".caret");
+                if (!car) {
+                    car = this.display.lastChild;
+                }
                 if (car) {
                     this.input.style.top =
                         car.offsetTop + car.offsetHeight + "px";
@@ -1113,6 +1120,15 @@ class Terminal {
         this.env.print(this.parsePrompt(prompt));
         this.env.print("<span></span>");
         this.dis_input = this.display.lastElementChild;
+        let car = this.display.querySelector(".caret");
+        if (!car) {
+            car = this.display.lastChild;
+        }
+        if (car) {
+            this.input.style.top =
+                car.offsetTop + car.offsetHeight + "px";
+            this.input.style.left = car.offsetLeft + "px";
+        }
     }
 
     /**
