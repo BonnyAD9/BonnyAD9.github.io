@@ -804,6 +804,9 @@ class Terminal {
     /** @type {[String]} */
     history = [""];
 
+    /** @type {Number} */
+    last_enter = 0;
+
     /**
      * Creates new terminal.
      * @param {HTMLElement} show the display of the terminal
@@ -889,12 +892,17 @@ class Terminal {
 
         const keyPress = e => {
             if (e.key === 'Enter') {
+                let now = performance.now();
+                if (now - this.last_enter < 10) {
+                    return;
+                }
                 this.dis_input.innerHTML = htmlText(this.input.value);
                 this.env.println();
                 this.execute(this.input.value);
                 this.prompt1();
                 this.input.value = "";
                 onValueChange();
+                this.last_enter = performance.now();
             } else if (e.key === 'ArrowUp') {
                 if (this.his_pos !== 0) {
                     --this.his_pos;
