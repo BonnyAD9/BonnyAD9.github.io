@@ -325,19 +325,22 @@ class Command {
 
             /** @type {String} */
             let res = "";
-            while (args.next()) {
+            args.next();
+            while (args.cur()) {
                 switch (args.cur()) {
                     case "\"":
                         args.next();
                         return res;
                     case "\\":
                         res += escDQuote(args);
+                        args.next();
                         break;
                     case "$":
                         res += readVariable(args);
                         break;
                     default:
                         res += args.cur();
+                        args.next();
                         break;
                 }
             }

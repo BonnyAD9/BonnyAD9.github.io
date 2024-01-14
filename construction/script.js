@@ -3,21 +3,20 @@ let term = new Terminal(
     document.querySelector(".true-input")
 );
 
-let clear = `
 /**
  * Clears the screen
  * @param {Env} env environment
  * @returns [Number] exit code
  */
-function main(env) {
+function clear(env) {
     if (env.args.length === 1) {
         env.print(TERM.clear);
         return 0;
     }
     let version = "1.0.0"
     env.println(
-        \`Welcome to clear help for clear
-Version: \${version}
+        `Welcome to clear help for clear
+Version: ${version}
 
 Usage:
   clear
@@ -25,17 +24,16 @@ Usage:
 
   clear <anything>
     shows this help
-\`
+`
     );
 }
-`
-let ls = `
+
 /**
  * Lists the directory items
  * @param {Env} env environment
  * @returns [Number] exit code
  */
-function main(env) {
+function ls(env) {
     if (env.args.length > 2) {
         env.error("ls accepts at most one argument");
         return 1;
@@ -43,7 +41,7 @@ function main(env) {
     let p = env.args.length <= 1 ? jinux.cwd : new Path(env.args[1]);
     let d = p.locate();
     if (!d) {
-        env.error(\`'\${p.path}' no such file or directory.\`);
+        env.error(`'${p.path}' no such file or directory.`);
         return 1;
     }
 
@@ -80,15 +78,13 @@ function main(env) {
     }
     return 0;
 }
-`;
 
-let mkdir = `
 /**
  * Creates new directory
  * @param {Env} env environment
  * @returns exit code
  */
-function main(env) {
+function mkdir(env) {
     if (env.args.length === 1) {
         env.error("Invalid number of arguments");
         return 1;
@@ -108,15 +104,13 @@ function main(env) {
 
     return ret;
 }
-`;
 
-let cat = `
 /**
  * Prints the contents of a file
  * @param {Env} env environment
  * @returns exit code
  */
-function main(env) {
+function cat(env) {
     if (env.args.length != 2) {
         env.error("Invalid number of arguments");
         return 1;
@@ -124,27 +118,25 @@ function main(env) {
 
     let file = new Path(env.args[1]).locate();
     if (!file) {
-        env.error(\`file '\${env.args[1]}' doesn't exist\`);
+        env.error(`file '${env.args[1]}' doesn't exist`);
         return 1;
     }
 
     if (file.type != 'file') {
-        env.error(\`'\${env.args[1]}' is not a file\`);
+        env.error(`'${env.args[1]}' is not a file`);
         return 1;
     }
 
     env.print(file.value);
     return 0;
 }
-`;
 
-let chmod = `
 /**
  * Add/remove execute privilages
  * @param {Env} env environment
  * @returns exit code
  */
-function main(env) {
+function chmod(env) {
     if (env.args.length !== 3) {
         env.error("Invalid number of arguments");
         return 1;
@@ -177,7 +169,6 @@ function main(env) {
     file.exe = val;
     return 0;
 }
-`
 
 let title = '\
        __      __         __       ___          __              __    \n\
@@ -219,27 +210,27 @@ jinux.root.value = {
                     clear: {
                         type: 'file',
                         exe: true,
-                        value: clear,
+                        value: clear.toString().replace("clear", "main"),
                     },
                     ls: {
                         type: 'file',
                         exe: true,
-                        value: ls,
+                        value: ls.toString().replace("ls", "main"),
                     },
                     mkdir: {
                         type: 'file',
                         exe: true,
-                        value: mkdir,
+                        value: mkdir.toString().replace("mkdir", "main"),
                     },
                     cat: {
                         type: 'file',
                         exe: true,
-                        value: cat,
+                        value: cat.toString().replace("cat", "main"),
                     },
                     chmod: {
                         type: 'file',
                         exe: true,
-                        value: chmod,
+                        value: chmod.toString().replace("chmod", "main"),
                     }
                 }
             }
