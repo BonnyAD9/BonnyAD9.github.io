@@ -111,7 +111,15 @@ function mkdir(env) {
  * @returns exit code
  */
 function cat(env) {
-    if (env.args.length != 2) {
+    if (env.args.length === 1) {
+        let data = env.stdin();
+        while (data) {
+            env.print(data);
+            data = env.stdin();
+        }
+        return 1;
+    }
+    if (env.args.length !== 2) {
         env.error("Invalid number of arguments");
         return 1;
     }

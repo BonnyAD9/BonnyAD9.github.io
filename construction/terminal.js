@@ -98,6 +98,8 @@ class Env {
     stdout;
     /** @type {function(...String)} */
     stderr;
+    /** @type {function(): String | null} */
+    stdin = null;
 
     /**
      * Creates new environment
@@ -151,6 +153,26 @@ class Env {
      */
     error(...vals) {
         this.stderr(col('r', "error: "), ...vals, "\n");
+    }
+
+    /**
+     *
+     * @returns {String}
+     */
+    readAll() {
+        if (!this.stdin) {
+            return null;
+        }
+
+        /** @type {String} */
+        let res = "";
+
+        let c = this.stdin();
+        while (c) {
+            res += c;
+            c = this.stdin();
+        }
+        return res;
     }
 
     /**
@@ -217,7 +239,7 @@ class Command {
     /** @type {String} */
     cmd;
     /** @type {Command | null} */
-    //next = null;
+    next = null;
     /** @type {String | null} */
     //next_type = null;
     /** @type {String | null} */
@@ -228,7 +250,7 @@ class Command {
     /**
      *
      * @param {Env} env
-     * @param {String | [String]} arg
+     * @param {String | [String] | CharReader} arg
      * @returns
      */
     constructor(env, arg) {
@@ -240,7 +262,8 @@ class Command {
             return;
         }
 
-        let args = new CharReader(arg);
+        /** @type {CharReader} */
+        let args = arg.constructor === CharReader ? arg : new CharReader(arg);
 
         /**
          *
@@ -375,6 +398,21 @@ class Command {
             this.stdout = readItem(args);
         }
 
+        const readPipe = args => {
+            args.next();
+            while (args.cur() === " ") {
+                args.next();
+            }
+
+            if (!args.cur()) {
+                return;
+            }
+
+            this.next = new Command(env.inherit([]), args);
+            this.next.stdout = this.stdout;
+            this.stdout = null;
+        }
+
         /**
          *
          * @param {CharReader} args
@@ -420,6 +458,9 @@ class Command {
             switch (args.cur()) {
                 case ">":
                     readRedirect(args);
+                    break;
+                case "|":
+                    readPipe(args);
                     break;
                 default:
                     parted.push(readItem(args));
@@ -1037,30 +1078,70 @@ class Terminal {
 
         let cmd = new Command(this.env.inherit([]), command);
 
+        /** @type {String | null} */
+        let pipeOutStorage = "";
+        const pipeOut = (...a) => {
+            a.forEach(s => {
+                if (!s.constructor || s.constructor !== TermCommand) {
+                    pipeOutStorage += s;
+                }
+            });
+        }
+
+        let pipeInStorage = null;
+        const pipeIn = () => {
+            let res = pipeInStorage;
+            pipeInStorage = null;
+            return res && res.length !== 0 ? res : null;
+        }
+
+        if (cmd.next) {
+            this.runCmd(cmd, pipeOut, null);
+            cmd = cmd.next;
+        }
+
+        while (cmd.next) {
+            pipeInStorage = pipeOutStorage;
+            pipeOutStorage = "";
+            this.runCmd(cmd, pipeOut, pipeIn);
+            cmd = cmd.next;
+        }
+
+        pipeInStorage = pipeOutStorage;
+
+        this.runCmd(cmd, null, pipeIn);
+    }
+
+    /**
+     *
+     * @param {Command} cmd
+     * @param {function(...String) | null} stdout
+     * @param {null | function(): String} stdin
+     * @returns {Number}
+     */
+    runCmd(cmd, stdout, stdin) {
         if (!cmd.cmd) {
             return 0;
         }
 
+        if (stdout) {
+            cmd.env.stdout = stdout;
+        } else if (!cmd.setStdout(true)) {
+            this.env.error("Failed to redirect");
+        }
+
+        if (stdin) {
+            cmd.env.stdin = stdin;
+        }
+
         switch (cmd.cmd) {
             case "cd":
-                if (!cmd.setStdout(true)) {
-                    this.env.error("Failed to redirect");
-                }
                 return this.cd(cmd.env);
             case "echo":
-                if (!cmd.setStdout(true)) {
-                    this.env.error("Failed to redirect");
-                }
                 return this.echo(cmd.env);
             case "help":
-                if (!cmd.setStdout(true)) {
-                    this.env.error("Failed to redirect");
-                }
                 return this.help(cmd.env);
             case "history":
-                if (!cmd.setStdout(true)) {
-                    this.env.error("Failed to redirect");
-                }
                 return this.show_history(cmd.env);
         }
 
@@ -1079,10 +1160,6 @@ class Terminal {
         }
 
         cmd.env.args = [prog.path.path, ...cmd.env.args];
-
-        if (!cmd.setStdout(true)) {
-            this.env.error("Failed to redirect");
-        }
 
         if (prog.type === 'exe') {
             return prog.value(cmd.env);
