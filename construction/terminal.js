@@ -857,56 +857,41 @@ const TERM = {
     clear: new TermCommand('clear'),
 };
 
-class Terminal {
+class TermIO {
     /** @type {HTMLElement} */
     display;
     /** @type {HTMLElement} */
-    dis_input = null;
+    dis_input;
     /** @type {HTMLElement} */
     input;
-    /** @type {Env} */
-    env;
-    /** @type {[Number]} */
-    sel = [0, 0];
-    /** @type {[Number]} */
-    downPos = [0, 0];
-
-    /** @type {Int} */
-    his_pos = 0;
-    /** @type {[String]} */
-    history = [""];
 
     /** @type {Number} */
     last_enter = 0;
 
+    /** @type {null | function(String)} */
+    onKeyPress = null;
+    /** @type {null | function(String)} */
+    onLine = null;
+
+    /** @type {null | function(String)} */
+    resolver = null;
+
     /**
-     * Creates new terminal.
-     * @param {HTMLElement} show the display of the terminal
-     * @param {HTMLElement} input the input field of the terminal
+     *
+     * @param {HTMLElement} display
+     * @param {HTMLElement} input
      */
-    constructor(show, input) {
-        this.display = show;
+    constructor(display, input) {
+        this.display = display;
         this.input = input;
     }
 
-    /**
-     * Initializes the terminal.
-     */
     init() {
-        const print = (...s) => s.forEach(s => {
-            if (s.constructor && s.constructor === TermCommand) {
-                switch (s.cmd) {
-                    case 'clear':
-                        this.clear();
-                        break;
-                }
-            } else {
-                this.display.innerHTML += s;
-            }
-        });
-        this.env = new Env(jinux.cwd, [], print, print);
-
         const onValueChange = _e => {
+            if (!this.dis_input) {
+                return;
+            }
+
             let sel = [this.input.selectionStart, this.input.selectionEnd];
 
             let idx = sel[0];
@@ -968,13 +953,19 @@ class Terminal {
                 if (now - this.last_enter < 10) {
                     return;
                 }
-                this.dis_input.innerHTML = htmlText(this.input.value);
-                this.env.println();
-                this.execute(this.input.value);
-                this.prompt1();
+                if (this.dis_input) {
+                    this.dis_input.innerHTML = htmlText(this.input.value);
+                }
+                this.display.innerHTML += "\n";
+                let value = this.input.value;
                 this.input.value = "";
-                onValueChange();
                 this.last_enter = performance.now();
+                if (this.onLine) {
+                    this.onLine(value);
+                }
+                this.execute(value);
+                this.prompt1();
+                onValueChange();
             } else if (e.key === 'ArrowUp') {
                 if (this.his_pos !== 0) {
                     --this.his_pos;
@@ -1028,7 +1019,9 @@ class Terminal {
         };
 
         const onBlur = _e => {
-            this.dis_input.innerHTML = this.input.value;
+            if (this.dis_input) {
+                this.dis_input.innerHTML = htmlText(this.input.value);
+            }
         }
 
         const onFocus = e => {
@@ -1042,6 +1035,90 @@ class Terminal {
         this.input.addEventListener('blur', onBlur);
         document.addEventListener('selectionchange', onChange);
         this.display.addEventListener('click', onClick);
+    }
+
+
+    /**
+     *
+     * @param {String | TermCommand} s
+     */
+    print(s) {
+        if (!s.constructor || s.constructor !== TermCommand) {
+            this.display.innerHTML += s;
+        }
+
+        switch (s.cmd) {
+            case 'clear':
+                this.clear();
+                break;
+        }
+    }
+
+    clear() {
+        this.display.innerHTML = "";
+    }
+
+    /**
+     * @returns {String}
+     */
+    getLine() {
+        let prom = new Promise(resolve => {
+            this.resolver = s => {
+                resolve(s);
+            }
+        });
+    }
+}
+
+class Terminal {
+    /** @type {HTMLElement} */
+    display;
+    /** @type {HTMLElement} */
+    dis_input = null;
+    /** @type {HTMLElement} */
+    input;
+    /** @type {Env} */
+    env;
+    /** @type {[Number]} */
+    sel = [0, 0];
+    /** @type {[Number]} */
+    downPos = [0, 0];
+
+    /** @type {Int} */
+    his_pos = 0;
+    /** @type {[String]} */
+    history = [""];
+
+    /** @type {Number} */
+    last_enter = 0;
+
+    /**
+     * Creates new terminal.
+     * @param {HTMLElement} show the display of the terminal
+     * @param {HTMLElement} input the input field of the terminal
+     */
+    constructor(show, input) {
+        this.display = show;
+        this.input = input;
+    }
+
+    /**
+     * Initializes the terminal.
+     */
+    init() {
+        const print = (...s) => s.forEach(s => {
+            if (s.constructor && s.constructor === TermCommand) {
+                switch (s.cmd) {
+                    case 'clear':
+                        this.clear();
+                        break;
+                }
+            } else {
+                this.display.innerHTML += s;
+            }
+        });
+        this.env = new Env(jinux.cwd, [], print, print);
+
 
         this.prompt1();
     }
