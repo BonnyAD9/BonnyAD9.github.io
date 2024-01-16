@@ -113,6 +113,9 @@ class Env {
     stderr;
     /** @type {function(): String | TermCommand | null} */
     stdin = null;
+    /** @type {function(): Number} */
+    getWidth = null;
+
 
     /**
      * Creates new environment
@@ -222,7 +225,9 @@ class Env {
      * @returns new environtment
      */
     inherit(args) {
-        return new Env(this.cwd, args, this.stdout, this.stderr);
+        let cpy = new Env(this.cwd, args, this.stdout, this.stderr);
+        cpy.getWidth = this.getWidth;
+        return cpy;
     }
 
     getVar(name) {
@@ -905,6 +910,7 @@ class Terminal {
             }
         });
         this.env = new Env(jinux.cwd, [], print, print);
+        this.env.getWidth = () => this.width();
 
         const onValueChange = _e => {
             let sel = [this.input.selectionStart, this.input.selectionEnd];
@@ -1202,7 +1208,11 @@ class Terminal {
                 try {
                     ${prog.value}
                     return main(__env);
-                } catch {
+                } catch (e) {
+                    try {
+                        console.log(e);
+                        __env.error(e);
+                    } catch {}
                     return 2;
                 }
             `)(cmd.env);
@@ -1256,6 +1266,19 @@ class Terminal {
      */
     clear() {
         this.display.innerHTML = "";
+    }
+
+    /**
+     *
+     * @returns {Number}
+     */
+    width() {
+        let letters = document.getElementById("letters").offsetWidth / 8;
+        let disStyle = window.getComputedStyle(this.display, null);
+        let pl = parseFloat(disStyle.getPropertyValue('padding-left'));
+        let pr = parseFloat(disStyle.getPropertyValue('padding-right'));
+        let dis = this.display.offsetWidth - pl - pr;
+        return Math.trunc(dis / letters);
     }
 
     /**

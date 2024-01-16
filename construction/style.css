@@ -49,11 +49,21 @@ body {
 }
 
 .term,
-.term span {
+.term span,
+.letter-width {
     font-family: monospace;
     white-space: pre-wrap;
     word-break: break-all;
     font-size: large;
+}
+
+.letter-width {
+    visibility: hidden;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    margin: 0px;
+    padding: 0px;
 }
 
 .term {

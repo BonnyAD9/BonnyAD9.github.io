@@ -178,6 +178,28 @@ function chmod(env) {
     return 0;
 }
 
+/**
+ * centers the input
+ * @param {Env} env
+ * @returns {Number}
+ */
+function center(env) {
+    let text = env.readAll().split("\n");
+    let width = env.getWidth();
+    text.forEach(t => {
+        let dif = width - t.length;
+        let hdif = Math.trunc(dif / 2);
+        if (dif === 0) {
+            env.println(t);
+        } else if (dif > 0) {
+            env.println(" ".repeat(hdif), t);
+        } else {
+            env.println(t.substring(-hdif, width - hdif));
+        }
+    });
+    return 0;
+}
+
 let title = '\
        __      __         __       ___          __              __    \n\
       / /___ _/ /____  __/ /_     /   |  ____  / /_____  ____  /_/___ \n\
@@ -185,14 +207,14 @@ let title = '\
 / /_/ / /_/ / ,< / /_/ / /_/ /  / ___ |/ / / / /_/ /_/ / / / / / / / /\n\
 \\____/\\__,_/_/|_|\\__,_/_.___/  /_/  |_/_/ /_/\\__/\\____/_/ /_/_/_/ /_/ \n\
                                                                       \n\
-                     _|ˇ/_ __  _       __                             \n\
-                    / ___// /_(_)___ _/ /__  _____                    \n\
-                    \\__ \\/ __/ / __ `/ / _ \\/ ___/                    \n\
-                   ___/ / /_/ / /_/ / /  __/ /                        \n\
-                  /____/\\__/_/\\__, /_/\\___/_/                         \n\
-                             /____/                                   \n\
+   _|ˇ/_ __  _       __         \n\
+  / ___// /_(_)___ _/ /__  _____\n\
+  \\__ \\/ __/ / __ `/ / _ \\/ ___/\n\
+ ___/ / /_/ / /_/ / /  __/ /    \n\
+/____/\\__/_/\\__, /_/\\___/_/     \n\
+           /____/               \n\
 \n\
-                             Developer                              \n\
+Developer\n\
 \n';
 
 let about = '\n\
@@ -239,6 +261,11 @@ jinux.root.value = {
                         type: 'file',
                         exe: true,
                         value: chmod.toString().replace("chmod", "main"),
+                    },
+                    center: {
+                        type: 'file',
+                        exe: true,
+                        value: center.toString().replace("center", "main"),
                     }
                 }
             }
