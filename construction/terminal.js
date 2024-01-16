@@ -87,6 +87,19 @@ function createDir(dir, name) {
     return dir.value[name];
 }
 
+class TermCommand {
+    /** @type {String} */
+    cmd;
+
+    /**
+     *
+     * @param {String} cmd
+     */
+    constructor(cmd) {
+        this.cmd = String(cmd);
+    }
+}
+
 class Env {
     /** @type {Path} */
     cwd;
@@ -98,7 +111,7 @@ class Env {
     stdout;
     /** @type {function(...String)} */
     stderr;
-    /** @type {function(): String | null} */
+    /** @type {function(): String | TermCommand | null} */
     stdin = null;
 
     /**
@@ -153,6 +166,34 @@ class Env {
      */
     error(...vals) {
         this.stderr(col('r', "error: "), ...vals, "\n");
+    }
+
+    /**
+     * reads data from stdin
+     * @returns {String | TermCommand | null}
+     */
+    readRaw() {
+        if (!this.stdin) {
+            return null;
+        }
+        return this.stdin();
+    }
+
+    /**
+     * reads data from the stdin, skips terminal commands
+     * @returns {String | null}
+     */
+    read() {
+        if (!this.stdin) {
+            return null;
+        }
+
+        let r = this.stdin();
+        while (r && r.constructor && r.constructor === TermCommand) {
+            r = this.stdin();
+        }
+
+        return r;
     }
 
     /**
@@ -812,19 +853,6 @@ function mkPath(path) {
     return new Path(path);
 }
 
-class TermCommand {
-    /** @type {String} */
-    cmd;
-
-    /**
-     *
-     * @param {String} cmd
-     */
-    constructor(cmd) {
-        this.cmd = String(cmd);
-    }
-}
-
 const TERM = {
     clear: new TermCommand('clear'),
 };
@@ -1078,21 +1106,25 @@ class Terminal {
 
         let cmd = new Command(this.env.inherit([]), command);
 
-        /** @type {String | null} */
-        let pipeOutStorage = "";
+        /** @type {[String | TermCommand]} */
+        let pipeOutStorage = [];
         const pipeOut = (...a) => {
             a.forEach(s => {
-                if (!s.constructor || s.constructor !== TermCommand) {
-                    pipeOutStorage += s;
+                if (s.constructor && s.constructor === TermCommand) {
+                    pipeOutStorage.push(s);
+                } else {
+                    pipeOutStorage.push(String(s));
                 }
             });
         }
 
-        let pipeInStorage = null;
+        /** @type {[String | TermCommand]} */
+        let pipeInStorage = [];
         const pipeIn = () => {
-            let res = pipeInStorage;
-            pipeInStorage = null;
-            return res && res.length !== 0 ? res : null;
+            if (pipeInStorage.length === 0) {
+                return null;
+            }
+            return pipeInStorage.pop();
         }
 
         if (cmd.next) {
@@ -1101,13 +1133,13 @@ class Terminal {
         }
 
         while (cmd.next) {
-            pipeInStorage = pipeOutStorage;
-            pipeOutStorage = "";
+            pipeInStorage = pipeOutStorage.reverse();
+            pipeOutStorage = [];
             this.runCmd(cmd, pipeOut, pipeIn);
             cmd = cmd.next;
         }
 
-        pipeInStorage = pipeOutStorage;
+        pipeInStorage = pipeOutStorage.reverse();
 
         this.runCmd(cmd, null, pipeIn);
     }
