@@ -211,10 +211,10 @@ class Env {
         /** @type {String} */
         let res = "";
 
-        let c = this.stdin();
+        let c = this.read();
         while (c) {
             res += c;
-            c = this.stdin();
+            c = this.read();
         }
         return res;
     }
