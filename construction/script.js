@@ -186,15 +186,77 @@ function chmod(env) {
 function center(env) {
     let text = env.readAll().split("\n");
     let width = env.getWidth();
+
+
+    let first = true;
     text.forEach(t => {
+        if (!first) {
+            env.println();
+        }
+        first = false;
+
+        if (t.length === 0) {
+            return;
+        }
+
         let dif = width - t.length;
         let hdif = Math.trunc(dif / 2);
         if (dif === 0) {
-            env.println(t);
+            env.print(t);
         } else if (dif > 0) {
-            env.println(" ".repeat(hdif), t);
+            env.print(" ".repeat(hdif), t);
         } else {
-            env.println(t.substring(-hdif, width - hdif));
+            env.print(t.substring(-hdif, width - hdif));
+        }
+    });
+    return 0;
+}
+
+/**
+ * wraps text on words
+ * @param {Env} env
+ * @returns {Integer}
+ */
+function wrap(env) {
+    let wmax = Number.MAX_SAFE_INTEGER;
+    if (env.args.length === 2) {
+        wmax = parseInt(env.args[1]);
+    } else if (env.args.length > 2) {
+        env.error("Invalid number of arguments");
+        return 1;
+    }
+    wmax = Math.min(wmax, env.getWidth());
+
+    let first = true;
+    env.readAll().split("\n").forEach(b => {
+        if (b.length === 0) {
+            if (!first) {
+                env.println();
+            }
+            first = false;
+        }
+
+        let line = "";
+        b.split(" ").forEach(w => {
+            if (line.length + 1 + w.length > wmax) {
+                if (!first) {
+                    env.println();
+                }
+                first = false;
+                env.print(line);
+                line = "";
+            }
+            if (line.length > 0) {
+                line += " ";
+            }
+            line += w;
+        });
+        if (line.length !== 0) {
+            if (!first) {
+                env.println();
+            }
+            first = false;
+            env.print(line);
         }
     });
     return 0;
@@ -218,13 +280,13 @@ Developer\n\
 \n';
 
 let about = '\n\
-I study at the University of Technology in Brno, specifically at the Faculty\n\
-of Information Technology. At the time of writing I am 20 and I have been\n\
-self-learning programming for ~6 years. I mostly enjoy programming in\n\
-languages like Rust, C, C#, C++,... One of my most useless skills is that I\n\
-can do something in the J programming language. I enjoy functional \n\
-programming (and Haskell) but I use it only when it makes sense.\n\
-\n';
+I study at the University of Technology in Brno, specifically at the Faculty \
+of Information Technology. At the time of writing I am 20 and I have been \
+self-learning programming for ~7 years. I mostly enjoy programming in \
+languages like Rust, C, C#, C++,... One of my most useless skills is that I \
+can do something in the J programming language. I enjoy functional \
+programming (and Haskell) but I use it only when it makes sense.\
+\n\n';
 
 let jshrc = `#!/usr/bin/jsh
 export PATH=/usr/bin
@@ -273,6 +335,11 @@ jinux.root.value = {
                         type: 'file',
                         exe: true,
                         value: center.toString().replace("center", "main"),
+                    },
+                    wrap: {
+                        type: 'file',
+                        exe: true,
+                        value: wrap.toString().replace("wrap", "main"),
                     }
                 }
             }
