@@ -21,6 +21,7 @@ body {
     margin: 0;
     background-color: #101010;
     color: #eee;
+    font-size: large;
 }
 
 body::-webkit-scrollbar {
@@ -54,7 +55,6 @@ body {
     font-family: monospace;
     white-space: pre-wrap;
     word-break: break-all;
-    font-size: large;
 }
 
 .letter-width {
