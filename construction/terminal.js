@@ -1001,7 +1001,7 @@ class Terminal {
         const keyPress = e => {
             if (e.key === 'Enter') {
                 let now = performance.now();
-                if (now - this.last_enter < 10) {
+                if (now - this.last_enter < 20) {
                     return;
                 }
                 this.typeCommand(this.input.value);
@@ -1038,7 +1038,10 @@ class Terminal {
                     car.offsetTop + car.offsetHeight + "px";
                 this.input.style.left = car.offsetLeft + "px";
                 let relPos = car.offsetTop - window.scrollY;
-                if (relPos > window.innerHeight || relPos < 0) {
+                if (relPos > window.innerHeight
+                    || relPos < 0
+                    || e.key === 'Enter'
+                ) {
                     car.scrollIntoView(false);
                     window.scrollBy(0, 5);
                 }
