@@ -40,7 +40,7 @@ body {
 .true-input {
     opacity: 0;
     filter: alpha(opacity=0);
-    width: 4px;
+    width: 1em;
     height: 1em;
     overflow: hidden;
     margin: 0px;
