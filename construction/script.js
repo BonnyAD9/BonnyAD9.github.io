@@ -231,7 +231,7 @@ export PATH=/usr/bin
 export 'PS1=${col('y', "\\u@\\h")} ${col('m', "\\w")}${col('gr', "$")} '
 export USER=host
 export HOME=/home/host
-`
+`;
 
 // the default directory
 jinux.root.value = {
