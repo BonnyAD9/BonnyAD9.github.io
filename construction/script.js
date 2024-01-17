@@ -305,8 +305,4 @@ let coms = document.querySelector(".page-src").innerHTML
     .split("\n")
     .map(s => s.trim())
     .filter(s => s.length !== 0)
-    .forEach(c => {
-        term.env.println(c);
-        term.execute(c);
-        term.prompt1();
-    });
+    .forEach(c => term.typeCommand(c));

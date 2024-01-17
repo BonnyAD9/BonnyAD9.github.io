@@ -232,12 +232,30 @@ class Env {
 
     getVar(name) {
         if (this.vars[name]) {
-            return vars[name];
+            return this.vars[name];
         }
         if (jinux.env[name]) {
             return jinux.env[name];
         }
         return null;
+    }
+
+    /**
+     * Sets environment variable of this environment
+     * @param {String} name
+     * @param {String} value
+     */
+    setVar(name, value) {
+        this.vars[name] = value;
+    }
+
+    /**
+     * Sets global environment variable
+     * @param {String} name
+     * @param {String} value
+     */
+    setGVar(name, value) {
+        jinux.env[name] = value;
     }
 }
 
@@ -974,10 +992,7 @@ class Terminal {
                 if (now - this.last_enter < 10) {
                     return;
                 }
-                this.dis_input.innerHTML = htmlText(this.input.value);
-                this.env.println();
-                this.execute(this.input.value);
-                this.prompt1();
+                this.typeCommand(this.input.value);
                 this.input.value = "";
                 onValueChange();
                 this.last_enter = performance.now();
@@ -1034,7 +1049,7 @@ class Terminal {
         };
 
         const onBlur = _e => {
-            this.dis_input.innerHTML = this.input.value;
+            this.dis_input.innerHTML = htmlText(this.input.value);
         }
 
         const onFocus = e => {
@@ -1102,14 +1117,25 @@ class Terminal {
     }
 
     /**
+     *
+     * @param {String} command
+     * @returns {Number}
+     */
+    typeCommand(command) {
+        this.dis_input.innerHTML = htmlText(command);
+        this.env.println();
+        this.updateHistory(command);
+        this.execute(command);
+        this.prompt1();
+    }
+
+    /**
      * Executes the given command in the terminal.
      * @param {String | [String]} command command to execute. When array, it is
      *                            interpreted as [command, ...args].
      * @returns {Number} return value of the command
      */
     execute(command) {
-        this.updateHistory(command);
-
         let cmd = new Command(this.env.inherit([]), command);
 
         /** @type {[String | TermCommand]} */
@@ -1181,6 +1207,8 @@ class Terminal {
                 return this.help(cmd.env);
             case "history":
                 return this.show_history(cmd.env);
+            case "export":
+                return this.export(cmd.env);
         }
 
         /** @type {FSItem} */
@@ -1328,6 +1356,26 @@ class Terminal {
     }
 
     /**
+     * Sets environment variable
+     * @param {Env} env
+     */
+    export(env) {
+        env.args.forEach(v => {
+            let spl = v.split("=", 2);
+            if (spl.length === 1) {
+                this.env.setGVar(this.env.getVar(spl[0]));
+                return;
+            } else if (spl.length !== 2) {
+                env.error(`Invalid argument '${v}'`);
+                return 1;
+            }
+
+            let [name, value] = spl;
+            this.env.setGVar(name, value);
+        });
+    }
+
+    /**
      * Prints help about the terminal.
      * @param {Env} env unused
      */
@@ -1346,12 +1394,16 @@ ${col('g', "Commands:")}
   ${col('y', "echo")} ${col('gr', "[arguments...]")}
     prints the arguments with spaces between them
 
+  ${col('y', "history")}
+    shows the command history
+
+  ${col('y', "export")} ${col('gr', '[NAME[=VALUE]]')}
+    sets the global environment variable NAME to VALUE, exports the local
+    variable NAME if there is no VALUE.
+
   ${col('y', "&lt;executable in one of the paths in $PATH&gt")} \
 ${col('gr', "[arguments...]")}
     executes the program with the arguments
-
-  ${col('y', "history")}
-    shows the command history
 `
         );
         return 0;
