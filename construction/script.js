@@ -186,7 +186,10 @@ function chmod(env) {
 function center(env) {
     let text = env.readAll().split("\n");
     let width = env.getWidth();
-
+    let force_width = null;
+    if (env.args.length === 2) {
+        force_width = parseInt(env.args[1]);
+    }
 
     let first = true;
     text.forEach(t => {
@@ -199,14 +202,20 @@ function center(env) {
             return;
         }
 
-        let dif = width - t.length;
+        let l = force_width ?? t.length;
+
+        let dif = width - l;
         let hdif = Math.trunc(dif / 2);
         if (dif === 0) {
             env.print(t);
         } else if (dif > 0) {
             env.print(" ".repeat(hdif), t);
         } else {
-            env.print(t.substring(-hdif, width - hdif));
+            if (force_width) {
+                env.print(t);
+            } else {
+                env.print(t.substring(-hdif, width - hdif));
+            }
         }
     });
     return 0;
@@ -295,6 +304,39 @@ export USER=host
 export HOME=/home/host
 `;
 
+let projects_title = '\
+    ____               _           __      \n\
+   / __ \\_________    (_)__  _____/ /______\n\
+  / /_/ / ___/ __ \\  / / _ \\/ ___/ __/ ___/\n\
+ / ____/ /  / /_/ / / /  __/ /__/ /_,\\_ \\  \n\
+/_/   /_/   \\____/_/ /\\___/\\___/\\__/____/  \n\
+                /___/                      \n\
+\n'
+
+let projects_list = `
+${col('bold', 'PLACE_MACRO')}
+
+    Rust macros you wish you had while you were writing your non-proc macro.
+
+    - GitGub repository: \
+<a href="https://github.com/BonnyAD9/place_macro">GitHub</a>
+    - Documentation: \
+<a href="https://docs.rs/place_macro/latest/place_macro/">docs.rs</a>
+    - Package: <a href="https://crates.io/crates/place_macro">crates.io</a>
+`;
+
+let links_title = '\
+    __    _       __       \n\
+   / /   (_)___  / /_______\n\
+  / /   / / __ \\/ //_/ ___/\n\
+ / /___/ / / / / ,< ,\\_ \\  \n\
+/_____/_/_/ /_/_/|_/____/  \n\
+\n';
+
+let links = `
+- GitHub profile: <a href="https://github.com/BonnyAD9">BonnyAD9</a>
+`;
+
 // the default directory
 jinux.root.value = {
     /** @type {FSItem} */
@@ -364,6 +406,28 @@ jinux.root.value = {
                     [".jshrc"]: {
                         type: 'file',
                         value: jshrc,
+                    },
+                    /** @type {FSItem} */
+                    projects: {
+                        type: 'dir',
+                        value: {
+                            title: {
+                                type: 'file',
+                                value: projects_title,
+                            },
+                            list: {
+                                type: 'file',
+                                value: projects_list,
+                            },
+                        }
+                    },
+                    links_title: {
+                        type: 'file',
+                        value: links_title,
+                    },
+                    links: {
+                        type: 'file',
+                        value: links,
                     }
                 }
             }
