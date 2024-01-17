@@ -371,10 +371,6 @@ jinux.root.value = {
     }
 };
 
-if (IS_MOBILE) {
-    document.body.style.fontSize = "xx-large"
-}
-
 jinux.init();
 term.init();
 

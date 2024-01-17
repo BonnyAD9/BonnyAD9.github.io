@@ -27,8 +27,6 @@ class FSItem {
     }
 }
 
-const IS_MOBILE = /Mobi/i.test(window.navigator.userAgent);
-
 function htmlText(s) {
     let lookup = {
         '&': "&amp;",
@@ -1330,7 +1328,7 @@ class Terminal {
         let disStyle = window.getComputedStyle(this.display, null);
         let pl = parseFloat(disStyle.getPropertyValue('padding-left'));
         let pr = parseFloat(disStyle.getPropertyValue('padding-right'));
-        let dis = this.display.offsetWidth - pl - pr;
+        let dis = this.display.offsetWidth - pl - pr - 1;
         return Math.trunc(dis / letters);
     }
 
