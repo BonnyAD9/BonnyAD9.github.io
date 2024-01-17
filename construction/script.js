@@ -337,6 +337,12 @@ let links = `
 - GitHub profile: <a href="https://github.com/BonnyAD9">BonnyAD9</a>
 `;
 
+let credits = `
+- Ascii font (I lightly modified it): \
+<a href="https://www.patorjk.com/software/taag/#p=display&f=Slant&t=BonnyAD9">\
+Slant</a>
+`
+
 // the default directory
 jinux.root.value = {
     /** @type {FSItem} */
@@ -428,6 +434,10 @@ jinux.root.value = {
                     links: {
                         type: 'file',
                         value: links,
+                    },
+                    credits: {
+                        type: 'file',
+                        value: credits,
                     }
                 }
             }
