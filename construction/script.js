@@ -226,6 +226,13 @@ can do something in the J programming language. I enjoy functional \n\
 programming (and Haskell) but I use it only when it makes sense.\n\
 \n';
 
+let jshrc = `#!/usr/bin/jsh
+export PATH=/usr/bin
+export 'PS1=${col('y', "\\u@\\h")} ${col('m', "\\w")}${col('gr', "$")} '
+export USER=host
+export HOME=/home/host
+`
+
 // the default directory
 jinux.root.value = {
     /** @type {FSItem} */
@@ -286,17 +293,16 @@ jinux.root.value = {
                     about: {
                         type: 'file',
                         value: about,
+                    },
+                    [".jshrc"]: {
+                        type: 'file',
+                        value: jshrc,
                     }
                 }
             }
         }
     }
 };
-
-jinux.env.PATH = "/usr/bin/";
-jinux.env.PS1 = `${col('y', "\\u@\\h")} ${col('m', "\\w")}${col('gr', "$")} `;
-jinux.env.HOME = "/home/host";
-jinux.env.USER = "host";
 
 jinux.init();
 term.init();

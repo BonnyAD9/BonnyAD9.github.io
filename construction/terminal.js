@@ -295,6 +295,10 @@ class CharReader {
     prepend(str) {
         str.split("").reverse().forEach(c => this.chars.push(c));
     }
+
+    clear() {
+        this.chars = [];
+    }
 }
 
 class Command {
@@ -499,6 +503,9 @@ class Command {
                     case "\\":
                         cur += readEsc(args);
                         break;
+                    case "#":
+                        args.clear();
+                        break;
                     default:
                         cur += args.cur();
                         args.next();
@@ -525,6 +532,9 @@ class Command {
                     break;
                 case "|":
                     readPipe(args);
+                    break;
+                case "#":
+                    args.clear();
                     break;
                 default:
                     parted.push(readItem(args));
@@ -1064,6 +1074,13 @@ class Terminal {
         document.addEventListener('selectionchange', onChange);
         this.display.addEventListener('click', onClick);
 
+        let rc = this.env.getVar('HOME') ? "~/.jshrc" : "/home/host/.jshrc";
+        if (new Path(rc).exists()) {
+            this.execute(`. ${rc}`);
+        }
+
+        jinux.cwd = new Path("~").absolute();
+
         this.prompt1();
     }
 
@@ -1097,7 +1114,7 @@ class Terminal {
      * @returns {Path}
      */
     findInPath(name) {
-        let path = jinux.env.PATH;
+        let path = this.env.getVar("PATH");
         if (!path) {
             return null;
         }
@@ -1209,6 +1226,8 @@ class Terminal {
                 return this.show_history(cmd.env);
             case "export":
                 return this.export(cmd.env);
+            case ".":
+                return this.dot_script(cmd.env);
         }
 
         /** @type {FSItem} */
@@ -1361,17 +1380,40 @@ class Terminal {
      */
     export(env) {
         env.args.forEach(v => {
-            let spl = v.split("=", 2);
-            if (spl.length === 1) {
+            let spl = v.split(/=(.*)/s);
+            if (spl.length === 2) {
                 this.env.setGVar(this.env.getVar(spl[0]));
                 return;
-            } else if (spl.length !== 2) {
-                env.error(`Invalid argument '${v}'`);
-                return 1;
             }
 
             let [name, value] = spl;
             this.env.setGVar(name, value);
+        });
+    }
+
+    /**
+     * Executes the given script
+     * @param {Env} env
+     */
+    dot_script(env) {
+        if (env.args.length !== 1) {
+            env.error("Invalid number of arguments");
+            return 1;
+        }
+
+        let file = new Path(env.args[0]).locate();
+        if (!file) {
+            env.error(`File '${env.args[0]}' doesn't exist`);
+            return 1;
+        }
+
+        if (file.type !== 'file') {
+            env.error(`'${env.args[0]}' is not a file`);
+            return 1;
+        }
+
+        file.value.split("\n").forEach(c => {
+            this.execute(c)
         });
     }
 
