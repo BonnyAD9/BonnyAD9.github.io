@@ -41,12 +41,14 @@ body {
     opacity: 0;
     filter: alpha(opacity=0);
     width: 4px;
-    height: 4px;
+    height: 1em;
     overflow: hidden;
     margin: 0px;
     padding: 0px;
     position: absolute;
-    margin-top: -0.5em;
+    margin-top: -1.15em;
+    font-size: 3em;
+    z-index: -1;
 }
 
 .term,

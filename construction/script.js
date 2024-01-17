@@ -72,7 +72,7 @@ function ls(env) {
         return 0;
     }
 
-    let out = Object.entries(d.value).map(([_, f]) => getItem(f)).join(" ");
+    let out = Object.entries(d.value).map(([_, f]) => getItem(f)).join("  ");
     if (out.length > 0) {
         env.println(out);
     }
