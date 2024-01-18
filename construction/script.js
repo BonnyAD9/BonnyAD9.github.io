@@ -62,6 +62,11 @@ function ls(env) {
                 return col('g', name);
             case 'link':
                 return col('c bold', name);
+            case 'file':
+                if (f.value.startsWith("#!/usr/bin/jsh")) {
+                    return col('g bold', name);
+                }
+                return name;
             default:
                 return name;
         }
@@ -271,6 +276,24 @@ function wrap(env) {
     return 0;
 }
 
+/**
+ *
+ * @param {Env} env
+ */
+function unfaint(env) {
+    let sheets = document.styleSheets;
+    for (let i = 0; i < sheets.length; ++i) {
+        for (let j = 0; j < sheets[i].cssRules.length; ++j) {
+            let rule = sheets[i].cssRules[j];
+            console.log(rule.cssText);
+            if (rule.cssText.startsWith(".obsc")) {
+                sheets[i].deleteRule(j);
+                --j;
+            }
+        }
+    }
+}
+
 let title = '\
        __      __         __       ___          __              __    \n\
       / /___ _/ /____  __/ /_     /   |  ____  / /_____  ____  /_/___ \n\
@@ -285,7 +308,7 @@ let title = '\
 /____/\\__/_/\\__, /_/\\___/_/     \n\
            /____/               \n\
 \n\
-Developer\n\
+Programmer\n\
 \n';
 
 let about = '\n\
@@ -299,7 +322,9 @@ programming (and Haskell) but I use it only when it makes sense.\
 
 let jshrc = `#!/usr/bin/jsh
 export PATH=/usr/bin
-export 'PS1=${col('y', "\\u@\\h")} ${col('m', "\\w")}${col('gr', "$")} '
+export 'PS1=${col('y obsc', "\\u@\\h")} ${col('m obsc', "\\w")}\
+${col('gr obsc', "$")} '
+export 'PST=obsc bgr'
 export USER=host
 export HOME=/home/host
 `;
@@ -313,16 +338,34 @@ let projects_title = '\
                 /___/                      \n\
 \n'
 
-let projects_list = `
-${col('bold', 'PLACE_MACRO')}
+/** @type {FSItem} */
+let place_macro_project = {
+    /** @type {FSItem} */
+    about: {
+        type: 'file',
+        value: `
+Rust macros you wish you had while you were writing your non-proc macro.
+`
+    },
+    links: {
+        type: 'file',
+        value: `
+- GitGub repository:\
+ <a href="https://github.com/BonnyAD9/place_macro">GitHub</a>
+- Documentation:\
+ <a href="https://docs.rs/place_macro/latest/place_macro/">docs.rs</a>
+- Package: <a href="https://crates.io/crates/place_macro">crates.io</a>
+`
+    },
+}
 
-    Rust macros you wish you had while you were writing your non-proc macro.
-
-    - GitGub repository: \
-<a href="https://github.com/BonnyAD9/place_macro">GitHub</a>
-    - Documentation: \
-<a href="https://docs.rs/place_macro/latest/place_macro/">docs.rs</a>
-    - Package: <a href="https://crates.io/crates/place_macro">crates.io</a>
+let list_projects = `\
+#!/usr/bin/jsh
+echo
+echo '${col('bold', 'PLACE_MACRO')}' | center 80
+cat place_macro/about | wrap 76 | center 72
+cat place_macro/links | center 72
+echo
 `;
 
 let links_title = '\
@@ -421,9 +464,13 @@ jinux.root.value = {
                                 type: 'file',
                                 value: projects_title,
                             },
-                            list: {
+                            list_projects: {
                                 type: 'file',
-                                value: projects_list,
+                                value: list_projects,
+                            },
+                            place_macro: {
+                                type: 'dir',
+                                value: place_macro_project,
                             },
                         }
                     },
@@ -438,6 +485,11 @@ jinux.root.value = {
                     credits: {
                         type: 'file',
                         value: credits,
+                    },
+                    unfaint: {
+                        type: 'file',
+                        exe: true,
+                        value: unfaint.toString().replace("unfaint", "main"),
                     }
                 }
             }

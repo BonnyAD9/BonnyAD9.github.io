@@ -1298,7 +1298,7 @@ class Terminal {
     prompt1() {
         let prompt = this.env.getVar("PS1") ?? `\\u@\\h \\w$ `;
         this.env.print(this.parsePrompt(prompt));
-        this.env.print("<span></span>");
+        this.env.print(`<span class="${this.env.getVar('PST') ?? ""}"></span>`);
         this.dis_input = this.display.lastElementChild;
         let car = this.display.querySelector(".caret");
         if (!car) {

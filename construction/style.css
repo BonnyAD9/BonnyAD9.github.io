@@ -224,3 +224,11 @@ body {
 .dark-cyan-bg, .dcyanb, .dcb {
     background-color: var(--dark-cyan);
 }
+
+.faint {
+    opacity: 0.5;
+}
+
+.obsc {
+    opacity: 0.2;
+}
