@@ -280,6 +280,58 @@ function wrap(env) {
  *
  * @param {Env} env
  */
+function gradient(env) {
+    if (env.args.length !== 3) {
+        env.error("Invalid number of arguments");
+        return 1;
+    }
+
+    if (env.args[1].length !== 6 || env.args[2].length !== 6) {
+        env.error(
+            "Invalid arguments, arguments must be in the form XXXXXX where X "
+            + "is hexadecimal digit"
+        );
+        return 1;
+    }
+
+    /**
+     *
+     * @param {String} m
+     * @returns {[Number]}
+     */
+    function getRGB(m) {
+        return [
+            parseInt(m.substring(0,2), 16),
+            parseInt(m.substring(2,4), 16),
+            parseInt(m.substring(4,6), 16)
+        ];
+    }
+
+    let start = getRGB(env.args[1]);
+    let end = getRGB(env.args[2]);
+
+    let lines = env.readAll().split("\n");
+
+    let step = end.map((e, i) => (e - start[i]) / lines.length);
+
+    function getColor(pos) {
+        return `rgb(
+            ${start.map((s, i) => `${s + step[i] * pos}`).join(",")}
+        )`;
+    }
+
+    lines.forEach((l, i) => {
+        if (i !== 0) {
+            env.println();
+        }
+        env.print(`<span style="color: ${getColor(i)}">${l}</span>`);
+    });
+}
+
+/**
+ *
+ * @param {Env} env
+ */
 function unfaint(env) {
     let sheets = document.styleSheets;
     for (let i = 0; i < sheets.length; ++i) {
@@ -291,6 +343,16 @@ function unfaint(env) {
             }
         }
     }
+}
+
+/**
+ *
+ * @param {Colos the input} env
+ */
+function col_bin(env) {
+    let s = env.readAll();
+    let [_, ...styles] = env.args;
+    env.print(col(styles.join(" "), s));
 }
 
 let title = '\
@@ -306,9 +368,7 @@ let title = '\
  ___/ / /_/ / /_/ / /  __/ /    \n\
 /____/\\__/_/\\__, /_/\\___/_/     \n\
            /____/               \n\
-\n\
-Programmer\n\
-\n';
+';
 
 let about = '\n\
 I study at the University of Technology in Brno, specifically at the Faculty \
@@ -361,7 +421,7 @@ Rust macros you wish you had while you were writing your non-proc macro.
 let list_projects = `\
 #!/usr/bin/jsh
 echo
-echo '${col('bold', 'PLACE_MACRO')}' | center 80
+echo PLACE_MACRO | center 80 | style w bold
 cat place_macro/about | wrap 76 | center 72
 cat place_macro/links | center 72
 echo
@@ -430,6 +490,16 @@ jinux.root.value = {
                         type: 'file',
                         exe: true,
                         value: wrap.toString().replace("wrap", "main"),
+                    },
+                    gradient: {
+                        type: 'file',
+                        exe: true,
+                        value: gradient.toString().replace("gradient", "main"),
+                    },
+                    style: {
+                        type: 'file',
+                        exe: true,
+                        value: col_bin.toString().replace("col_bin", "main"),
                     }
                 }
             }
@@ -487,7 +557,7 @@ jinux.root.value = {
                         type: 'file',
                         value: credits,
                     },
-                    unfaint: {
+                    ["show-term"]: {
                         type: 'file',
                         exe: true,
                         value: unfaint.toString().replace("unfaint", "main"),
