@@ -1041,7 +1041,8 @@ class Terminal {
             if (car) {
                 this.input.style.top =
                     car.offsetTop + car.offsetHeight + "px";
-                this.input.style.left = car.offsetLeft + "px";
+                this.input.style.left =
+                    `min(calc(100% - 1em), ${car.offsetLeft}px)`;
                 let relPos = car.offsetTop - window.scrollY;
                 if (relPos > window.innerHeight
                     || relPos < 0
@@ -1063,7 +1064,8 @@ class Terminal {
                 if (car) {
                     this.input.style.top =
                         car.offsetTop + car.offsetHeight + "px";
-                    this.input.style.left = car.offsetLeft + "px";
+                    this.input.style.left =
+                        `min(calc(100% - 1em), ${car.offsetLeft}px)`;
                 }
             }
         };
@@ -1321,9 +1323,9 @@ class Terminal {
             car = this.display.lastChild;
         }
         if (car) {
-            this.input.style.top =
-                car.offsetTop + car.offsetHeight + "px";
-            this.input.style.left = car.offsetLeft + "px";
+            this.input.style.top = car.offsetTop + car.offsetHeight + "px";
+            this.input.style.left =
+                `min(calc(100% - 1em), ${car.offsetLeft}px)`;
         }
     }
 
