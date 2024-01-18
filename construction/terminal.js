@@ -1253,6 +1253,13 @@ class Terminal {
             return prog.value(cmd.env);
         }
 
+        if (prog.value.startsWith("#!/usr/bin/jsh")) {
+            let cwd = jinux.cwd;
+            this.script(prog.value);
+            jinux.cwd = cwd;
+            return 0;
+        }
+
         try {
             let exit_code = Function("__env", `"use strict";
                 try {
@@ -1396,6 +1403,16 @@ class Terminal {
     }
 
     /**
+     *
+     * @param {String} text
+     */
+    script(text) {
+        text.split("\n").forEach(c => {
+            this.execute(c)
+        });
+    }
+
+    /**
      * Executes the given script
      * @param {Env} env
      */
@@ -1416,9 +1433,7 @@ class Terminal {
             return 1;
         }
 
-        file.value.split("\n").forEach(c => {
-            this.execute(c)
-        });
+        this.script(file.value);
     }
 
     /**

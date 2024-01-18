@@ -285,7 +285,6 @@ function unfaint(env) {
     for (let i = 0; i < sheets.length; ++i) {
         for (let j = 0; j < sheets[i].cssRules.length; ++j) {
             let rule = sheets[i].cssRules[j];
-            console.log(rule.cssText);
             if (rule.cssText.startsWith(".obsc")) {
                 sheets[i].deleteRule(j);
                 --j;
@@ -454,6 +453,7 @@ jinux.root.value = {
                     },
                     [".jshrc"]: {
                         type: 'file',
+                        exe: true,
                         value: jshrc,
                     },
                     /** @type {FSItem} */
@@ -466,6 +466,7 @@ jinux.root.value = {
                             },
                             list_projects: {
                                 type: 'file',
+                                exe: true,
                                 value: list_projects,
                             },
                             place_macro: {
