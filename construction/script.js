@@ -315,9 +315,9 @@ function gradient(env) {
     let step = end.map((e, i) => (e - start[i]) / lines.length);
 
     function getColor(pos) {
-        return `rgb(
-            ${start.map((s, i) => `${s + step[i] * pos}`).join(",")}
-        )`;
+        return "rgb("
+            + start.map((s, i) => `${s + step[i] * pos}`).join(",")
+            + ")";
     }
 
     lines.forEach((l, i) => {

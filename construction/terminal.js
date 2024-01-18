@@ -477,31 +477,34 @@ class Command {
             }
 
             this.next = new Command(env.inherit([]), args);
-            this.next.stdout = this.stdout;
-            this.stdout = null;
         }
 
         /**
          *
          * @param {CharReader} args
+         * @returns {String | null}
          */
         const readItem = args => {
             /** @type {String} */
             let cur = "";
+            let readed = false;
 
             while (args.cur() && args.cur() !== " ") {
                 switch (args.cur()) {
                     case "'":
                         cur += readQuote(args);
+                        readed = true;
                         break;
                     case "\"":
                         cur += readDQuote(args);
+                        readed = true;
                         break;
                     case "$":
                         args.prepend(readVariable(args));
                         break;
                     case "\\":
                         cur += readEsc(args);
+                        readed = true;
                         break;
                     case "#":
                         args.clear();
@@ -509,11 +512,12 @@ class Command {
                     default:
                         cur += args.cur();
                         args.next();
+                        readed = true;
                         break;
                 }
             }
 
-            return cur;
+            return readed ? cur : null;
         }
 
         /** @type {[String]} */
@@ -537,7 +541,10 @@ class Command {
                     args.clear();
                     break;
                 default:
-                    parted.push(readItem(args));
+                    let i = readItem(args);
+                    if (i) {
+                        parted.push(i);
+                    }
                     break;
             }
         }
@@ -1013,7 +1020,7 @@ class Terminal {
                     setTimeout(() => {
                         this.input.selectionStart = 10000;
                         this.input.selectionEnd = 10000;
-                    }, 0);
+                    }, 1);
                     onValueChange();
                 }
             } else if (e.key === 'ArrowDown') {
@@ -1023,7 +1030,7 @@ class Terminal {
                     setTimeout(() => {
                         this.input.selectionStart = 10000;
                         this.input.selectionEnd = 10000;
-                    }, 0);
+                    }, 1);
                     onValueChange();
                 }
             }
@@ -1210,7 +1217,9 @@ class Terminal {
 
         if (stdout) {
             cmd.env.stdout = stdout;
-        } else if (!cmd.setStdout(true)) {
+        }
+
+        if (!cmd.setStdout(true)) {
             this.env.error("Failed to redirect");
         }
 
@@ -1345,14 +1354,14 @@ class Terminal {
      * @returns {Number} exit code.
      */
     cd(env) {
-        if (env.args.length > 2) {
+        if (env.args.length >= 2) {
             env.error(`Unexpected agument '${env.args[1]}'`);
             return 1;
         }
         if (env.args.length === 0) {
             let dir = new Path("~").absolute();
             if (dir.type() !== 'dir') {
-                env.error(`'${env.args[1]}' is not a directory`);
+                env.error(`'${dir.path}' is not a directory`);
                 return 1;
             }
             jinux.cwd = dir;
@@ -1360,7 +1369,7 @@ class Terminal {
         }
         let dir = new Path(env.args[0]).absolute();
         if (dir.type() !== 'dir') {
-            env.error(`'${env.args[1]}' is not a directory`);
+            env.error(`'${env.args[0]}' is not a directory`);
             return 1;
         }
         jinux.cwd = dir;
