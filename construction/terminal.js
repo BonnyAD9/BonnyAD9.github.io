@@ -963,7 +963,7 @@ class Terminal {
                 .substring(idx, Math.min(idx + 1, value.length))
             );
             if (caret.length === 0) {
-                caret = " ";
+                caret = "&nbsp;";
             }
             let selected;
             let second = htmlText(
