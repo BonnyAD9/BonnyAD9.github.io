@@ -332,7 +332,7 @@ function gradient(env) {
  *
  * @param {Env} env
  */
-function unfaint(env) {
+function unfaint(_env) {
     let sheets = document.styleSheets;
     for (let i = 0; i < sheets.length; ++i) {
         for (let j = 0; j < sheets[i].cssRules.length; ++j) {
@@ -343,6 +343,33 @@ function unfaint(env) {
             }
         }
     }
+}
+
+/**
+ * deletes file/directory
+ * @param {Env} env
+ */
+function rm(env) {
+    console.log(env);
+    let [_, ...args] = env.args;
+    let ret = 0;
+    args.forEach(f => {
+        let path = new Path(f).absolute();
+        let name = path.name();
+        let dir = path.parent().locate();
+
+        if (!dir || dir.type !== 'dir') {
+            env.error(`'${f}' doesn't exist.`);
+            return;
+        }
+
+        if (!dir.value[name]) {
+            env.error(`'${f}' doesn't exist.`);
+            return;
+        }
+
+        delete dir.value[name];
+    });
 }
 
 /**
@@ -504,6 +531,11 @@ jinux.root.value = {
                         type: 'file',
                         exe: true,
                         value: col_bin.toString().replace("col_bin", "main"),
+                    },
+                    rm: {
+                        type: 'file',
+                        exe: true,
+                        value: rm.toString().replace("rm", "main"),
                     }
                 }
             }
