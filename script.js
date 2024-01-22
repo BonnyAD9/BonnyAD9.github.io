@@ -373,13 +373,38 @@ function rm(env) {
 }
 
 /**
- *
- * @param {Colos the input} env
+ * Colors the input
+ * @param {Env} env
  */
 function col_bin(env) {
     let s = env.readAll();
     let [_, ...styles] = env.args;
     env.print(col(styles.join(" "), s));
+}
+
+/**
+ * Prints the current working directory
+ * @param {Env} env
+ */
+function pwd(env) {
+    env.println(new Path(".").absolute().path);
+}
+
+/**
+ * Creates new files if they don't exist
+ * @param {Env} env
+ */
+function touch(env) {
+    let [_, ...args] = env.args;
+    let ret = 0;
+    args.forEach(a => {
+        let path = new Path(a);
+        if (!path.open()) {
+            env.error(`Failed to create file ${a}`);
+            ret = 1;
+        }
+    });
+    return ret;
 }
 
 let title = '\
@@ -424,7 +449,6 @@ let projects_title = '\
                 /___/                      \n\
 \n'
 
-/** @type {FSItem} */
 let place_macro_project = {
     /** @type {FSItem} */
     about: {
@@ -433,6 +457,7 @@ let place_macro_project = {
 Rust macros you wish you had while you were writing your non-proc macro.
 `
     },
+    /** @type {FSItem} */
     links: {
         type: 'file',
         value: `
@@ -445,12 +470,35 @@ Rust macros you wish you had while you were writing your non-proc macro.
     },
 }
 
+let type_dark_project = {
+    about: {
+        type: 'file',
+        value: `
+Dark theme for visual studio code with helpful semantic syntax highlighting
+`
+    },
+    links: {
+        type: 'file',
+        value: `
+- GitHub repository: <a href="https://github.com/BonnyAD9/TypeDark">GitHub</a>
+- VS Code marketplace:\
+ <a\
+ href="https://marketplace.visualstudio.com/items?itemName=BonnyAD9.typedark">\
+marketplace.visualstudio</a>
+`
+    }
+};
+
 let list_projects = `\
 #!/usr/bin/jsh
 echo
 echo PLACE_MACRO | center 80 | style w bold
 cat place_macro/about | wrap 76 | center 72
 cat place_macro/links | center 72
+echo
+echo TYPE_DARK | center 80 | style w bold
+cat type_dark/about | wrap 76 | center 72
+cat type_dark/links | center 72
 echo
 `;
 
@@ -536,6 +584,16 @@ jinux.root.value = {
                         type: 'file',
                         exe: true,
                         value: rm.toString().replace("rm", "main"),
+                    },
+                    pwd: {
+                        type: 'file',
+                        exe: true,
+                        value: pwd.toString().replace("pwd", "main"),
+                    },
+                    touch: {
+                        type: 'file',
+                        exe: true,
+                        value: touch.toString().replace("touch", "main"),
                     }
                 }
             }
@@ -579,6 +637,10 @@ jinux.root.value = {
                                 type: 'dir',
                                 value: place_macro_project,
                             },
+                            type_dark: {
+                                type: 'dir',
+                                value: type_dark_project,
+                            }
                         }
                     },
                     links_title: {
