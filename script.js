@@ -399,7 +399,7 @@ function touch(env) {
     let ret = 0;
     args.forEach(a => {
         let path = new Path(a);
-        if (!path.open()) {
+        if (!path.exists() && !path.open()) {
             env.error(`Failed to create file ${a}`);
             ret = 1;
         }
