@@ -34,53 +34,87 @@ Usage:
  * @returns [Number] exit code
  */
 function ls(env) {
-    if (env.args.length > 2) {
-        env.error("ls accepts at most one argument");
-        return 1;
-    }
-    let p = env.args.length <= 1 ? jinux.cwd : new Path(env.args[1]);
-    let d = p.locate();
-    if (!d) {
-        env.error(`'${p.path}' no such file or directory.`);
-        return 1;
-    }
+    env.args.shift();
+    let ps = env.args.length <= 1
+        ? [jinux.cwd]
+        : env.args.map(p => new Path(p));
 
-    /**
-     * Gets name with the color for the given item.
-     * @param {FSItem} f
-     * @returns {String} colored name of the item
-     */
-    function getItem(f) {
-        let name = f.path.name();
-        if (f.exe) {
-            return col('g bold', name);
+    let ret = 0;
+
+    ps.forEach(p => {
+        if (ps.length > 1) {
+            env.println(p.path, ":");
         }
-        switch (f.type) {
-            case 'dir':
-                return col('b bold', name);
-            case 'exe':
-                return col('g', name);
-            case 'link':
-                return col('c bold', name);
-            case 'file':
-                if (f.value.startsWith("#!/usr/bin/jsh")) {
-                    return col('g bold', name);
+        let d = p.locate();
+        if (!d) {
+            env.error(`'${p.path}' no such file or directory.`);
+            ret = 1;
+            return;
+        }
+
+        /**
+         * Gets name with the color for the given item.
+         * @param {FSItem} f
+         * @returns {{val: String, len: Number}} colored name of the item
+         */
+        function getItem(f) {
+            let name = f.path.name();
+            if (name.includes(' ')) {
+                name = `'${name}'`;
+            }
+            let len = name.length;
+            let val = name;
+
+            if (f.exe) {
+                val = col('g bold', name);
+            } else {
+                switch (f.type) {
+                    case 'dir':
+                        val = col('b bold', name);
+                        break;
+                    case 'exe':
+                        val = col('g', name);
+                        break;
+                    case 'link':
+                        val = col('c bold', name);
+                        break;
+                    case 'file':
+                        if (f.value.startsWith("#!/usr/bin/jsh")) {
+                            val = col('g bold', name);
+                        }
                 }
-                return name;
-            default:
-                return name;
+            }
+
+            return { val: val, len: len };
         }
-    }
 
-    if (d.type !== 'dir') {
-        env.println(getItem(d));
-        return 0;
-    }
+        if (d.type !== 'dir') {
+            env.println(getItem(d).val);
+            return 0;
+        }
 
-    let out = Object.entries(d.value).map(([_, f]) => getItem(f)).join("  ");
-    if (out.length > 0) {
-        env.println(out);
-    }
+        let max_width = env.getWidth();
+        let pstr = "";
+        let plen = 0;
+
+        Object.entries(d.value).forEach(([_, f]) => {
+            let i = getItem(f);
+            if (plen + 2 + i.len > max_width && plen !== 0) {
+                pstr += "\n" + i.val;
+                plen = i.len;
+            } else {
+                if (plen !== 0) {
+                    pstr += "  ";
+                    plen += 2;
+                }
+                pstr += i.val
+                plen += i.len;
+            }
+        });
+        if (pstr.length > 0) {
+            env.println(pstr);
+        }
+    })
     return 0;
 }
 
