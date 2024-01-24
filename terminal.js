@@ -514,9 +514,6 @@ class Command {
                         cur += readEsc(args);
                         readed = true;
                         break;
-                    case "#":
-                        args.clear();
-                        break;
                     default:
                         cur += args.cur();
                         args.next();
