@@ -438,6 +438,7 @@ ${col('gr obsc', "$")} '
 export 'PST=obsc bgr'
 export USER=host
 export HOME=/home/host
+export =\\$
 `;
 
 let projects_title = '\

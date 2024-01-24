@@ -115,6 +115,8 @@ class Env {
     stdin = null;
     /** @type {function(): Number} */
     getWidth = null;
+    /** @type {Number} */
+    last_ret = 0;
 
 
     /**
@@ -227,6 +229,7 @@ class Env {
     inherit(args) {
         let cpy = new Env(this.cwd, args, this.stdout, this.stderr);
         cpy.getWidth = this.getWidth;
+        cpy.last_ret = this.last_ret;
         return cpy;
     }
 
@@ -366,11 +369,16 @@ class Command {
                 while (args.next()) {
                     if (args.cur() === "}") {
                         args.next();
-                        return env.getVar(name) ?? "";
+                        return env.getVar(name).replace("$", "\\$") ?? "";
                     }
                     name += args.cur();
                 }
-                return env.getVar(name) ?? "";
+                return env.getVar(name).replace("$", "\\$") ?? "";
+            }
+
+            if (args.cur() === '?') {
+                args.next();
+                return `${env.last_ret}`;
             }
 
             while (args.cur()) {
@@ -379,14 +387,14 @@ class Command {
                     !(code > 64 && code < 91) && // upper alpha (A-Z)
                     !(code > 96 && code < 123)   // lower alpha (a-z)
                 ) {
-                    return env.getVar(name) ?? "";
+                    return env.getVar(name).replace("$", "\\$") ?? "";
                 }
 
                 name += args.cur();
                 args.next();
             }
 
-            return env.getVar(name) ?? "";
+            return env.getVar(name).replace("$", "\\$") ?? "";
         };
 
         /**
@@ -1202,7 +1210,7 @@ class Terminal {
 
         pipeInStorage = pipeOutStorage.reverse();
 
-        this.runCmd(cmd, null, pipeIn);
+        this.env.last_ret = this.runCmd(cmd, null, pipeIn);
     }
 
     /**
@@ -1275,7 +1283,8 @@ class Terminal {
             let exit_code = Function("__env", `"use strict";
                 try {
                     ${prog.value}
-                    return main(__env);
+                    let ret = main(__env);
+                    return ret ? ret : 0;
                 } catch (e) {
                     try {
                         console.log(e);
