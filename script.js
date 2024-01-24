@@ -391,14 +391,17 @@ function rm(env) {
     let [_, ...args] = env.args;
     let rec = false;
 
-    if (args.length !== 0) {
-        if (args[0] === "-r") {
+    let filtered = [];
+    args.forEach(a => {
+        if (a === "-r" && !rec) {
             rec = true;
-            args.shift();
+        } else {
+            filtered.push(a);
         }
-    }
+    })
+
     let ret = 0;
-    args.forEach(f => {
+    filtered.forEach(f => {
         let path = new Path(f).absolute();
         let name = path.name();
         let dir = path.parent().locate();
