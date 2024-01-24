@@ -324,7 +324,7 @@ class Command {
      * @param {String | [String] | CharReader} arg
      * @returns
      */
-    constructor(env, arg) {
+    constructor(env, arg, aliases) {
         if (arg.constructor === Array) {
             let [cmd, ags] = arg;
             this.cmd = cmd;
@@ -484,7 +484,7 @@ class Command {
                 return;
             }
 
-            this.next = new Command(env.inherit([]), args);
+            this.next = new Command(env.inherit([]), args, aliases);
         }
 
         /**
@@ -530,6 +530,7 @@ class Command {
 
         /** @type {[String]} */
         let parted = [];
+        let aliased = false;
 
         while (args.cur()) {
             while (args.cur() === " ") {
@@ -554,6 +555,14 @@ class Command {
                         parted.push(i);
                     }
                     break;
+            }
+            if (parted.length === 1 && !aliased) {
+                aliased = true;
+                let val = aliases[parted[0]];
+                if (val) {
+                    parted = [];
+                    args.prepend(" " + val + " ");
+                }
             }
         }
 
@@ -923,6 +932,8 @@ class Terminal {
     his_pos = 0;
     /** @type {[String]} */
     history = [""];
+    /** @type {Object} */
+    aliases = {};
 
     /** @type {Number} */
     last_enter = 0;
@@ -1173,7 +1184,7 @@ class Terminal {
      * @returns {Number} return value of the command
      */
     execute(command) {
-        let cmd = new Command(this.env.inherit([]), command);
+        let cmd = new Command(this.env.inherit([]), command, this.aliases);
 
         /** @type {[String | TermCommand]} */
         let pipeOutStorage = [];
@@ -1248,6 +1259,8 @@ class Terminal {
                 return this.show_history(cmd.env);
             case "export":
                 return this.export(cmd.env);
+            case "alias":
+                return this.alias(cmd.env);
             case ".":
                 return this.dot_script(cmd.env);
         }
@@ -1457,6 +1470,17 @@ class Terminal {
     }
 
     /**
+     *
+     * @param {Env} env
+     */
+    alias(env) {
+        let [name, ...args] = env.args.join(" ").split("=");
+        let value = args.join("=");
+        name = name.trim();
+        this.aliases[name] = value;
+    }
+
+    /**
      * Prints help about the terminal.
      * @param {Env} env unused
      */
@@ -1481,6 +1505,8 @@ ${col('g', "Commands:")}
   ${col('y', "export")} ${col('gr', '[NAME[=VALUE]]')}
     sets the global environment variable NAME to VALUE, exports the local
     variable NAME if there is no VALUE.
+  ${col('y', "alias")} ${col('w', '&lt;NAME=VALUE&gt')}
+    sets alias to the given command
 
   ${col('y', "&lt;executable in one of the paths in $PATH&gt")} \
 ${col('gr', "[arguments...]")}

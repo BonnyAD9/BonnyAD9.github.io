@@ -493,6 +493,7 @@ export 'PST=obsc bgr'
 export USER=host
 export HOME=/home/host
 export =\\$
+alias claer=clear
 `;
 
 let projects_title = '\
