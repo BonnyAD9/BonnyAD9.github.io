@@ -35,7 +35,7 @@ Usage:
  */
 function ls(env) {
     env.args.shift();
-    let ps = env.args.length <= 1
+    let ps = env.args.length <= 0
         ? [jinux.cwd]
         : env.args.map(p => new Path(p));
 
