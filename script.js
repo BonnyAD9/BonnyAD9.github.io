@@ -541,16 +541,37 @@ marketplace.visualstudio</a>
     }
 };
 
+let termal_project = {
+    about: {
+        type: 'file',
+        value: `
+Rust library for fancy colored cli using ansi escape codes.
+`
+    },
+    links: {
+        type: 'file',
+        value: `
+- GitHub repository: <a href="https://github.com/BonnyAD9/termal">GitHub</a>
+- Documentation: <a href="https://docs.rs/termal/latest/termal/">docs.rs</a>
+- Package: <a href="https://crates.io/crates/termal">crates.io</a>
+`
+    }
+}
+
 let list_projects = `\
 #!/usr/bin/jsh
-echo
-echo PLACE_MACRO | center 80 | style w bold
-cat place_macro/about | wrap 76 | center 72
-cat place_macro/links | center 72
 echo
 echo TYPE_DARK | center 80 | style w bold
 cat type_dark/about | wrap 76 | center 72
 cat type_dark/links | center 72
+echo
+echo TERMAL | center 80 | style w bold
+cat termal/about | wrap 76 | center 72
+cat termal/links | center 72
+echo
+echo PLACE_MACRO | center 80 | style w bold
+cat place_macro/about | wrap 76 | center 72
+cat place_macro/links | center 72
 echo
 `;
 
@@ -692,6 +713,10 @@ jinux.root.value = {
                             type_dark: {
                                 type: 'dir',
                                 value: type_dark_project,
+                            },
+                            termal: {
+                                type: 'dir',
+                                value: termal_project,
                             }
                         }
                     },
