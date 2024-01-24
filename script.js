@@ -386,6 +386,14 @@ function unfaint(_env) {
 function rm(env) {
     console.log(env);
     let [_, ...args] = env.args;
+    let rec = false;
+
+    if (args.length !== 0) {
+        if (args[0] === "-r") {
+            rec = true;
+            args.shift();
+        }
+    }
     let ret = 0;
     args.forEach(f => {
         let path = new Path(f).absolute();
@@ -394,16 +402,25 @@ function rm(env) {
 
         if (!dir || dir.type !== 'dir') {
             env.error(`'${f}' doesn't exist.`);
+            ret = 1;
             return;
         }
 
         if (!dir.value[name]) {
             env.error(`'${f}' doesn't exist.`);
+            ret = 1;
+            return;
+        }
+
+        if (!rec && dir.value[name].type === 'dir') {
+            env.error(`'${f}' is a directory`);
+            ret = 1;
             return;
         }
 
         delete dir.value[name];
     });
+    return ret;
 }
 
 /**
