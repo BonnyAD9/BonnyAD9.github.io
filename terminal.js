@@ -1219,6 +1219,9 @@ class Terminal {
         pipeInStorage = pipeOutStorage.reverse();
 
         this.env.last_ret = this.runCmd(cmd, null, pipeIn);
+        if (!this.env.last_ret) {
+            this.env.last_ret = 0;
+        }
     }
 
     /**
