@@ -41,7 +41,10 @@ function ls(env) {
 
     let ret = 0;
 
-    ps.forEach(p => {
+    ps.forEach((p, idx) => {
+        if (idx !== 0) {
+            env.println();
+        }
         if (ps.length > 1) {
             env.println(p.path, ":");
         }

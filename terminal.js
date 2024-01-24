@@ -369,11 +369,11 @@ class Command {
                 while (args.next()) {
                     if (args.cur() === "}") {
                         args.next();
-                        return env.getVar(name).replace("$", "\\$") ?? "";
+                        return env.getVar(name) ?? "";
                     }
                     name += args.cur();
                 }
-                return env.getVar(name).replace("$", "\\$") ?? "";
+                return env.getVar(name) ?? "";
             }
 
             if (args.cur() === '?') {
@@ -387,14 +387,14 @@ class Command {
                     !(code > 64 && code < 91) && // upper alpha (A-Z)
                     !(code > 96 && code < 123)   // lower alpha (a-z)
                 ) {
-                    return env.getVar(name).replace("$", "\\$") ?? "";
+                    return env.getVar(name) ?? "";
                 }
 
                 name += args.cur();
                 args.next();
             }
 
-            return env.getVar(name).replace("$", "\\$") ?? "";
+            return env.getVar(name) ?? "";
         };
 
         /**
@@ -435,7 +435,7 @@ class Command {
                         args.next();
                         break;
                     case "$":
-                        res += readVariable(args);
+                        res += readVariable(args).replace("$", "\\$");
                         break;
                     default:
                         res += args.cur();
@@ -508,7 +508,7 @@ class Command {
                         readed = true;
                         break;
                     case "$":
-                        args.prepend(readVariable(args));
+                        args.prepend(readVariable(args).replace("$", "\\$"));
                         break;
                     case "\\":
                         cur += readEsc(args);
