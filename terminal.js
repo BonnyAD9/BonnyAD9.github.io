@@ -497,7 +497,7 @@ class Command {
             let cur = "";
             let readed = false;
 
-            while (args.cur() && args.cur() !== " ") {
+            while (args.cur() && args.cur() !== " " && args.cur() !== '>') {
                 switch (args.cur()) {
                     case "'":
                         cur += readQuote(args);
