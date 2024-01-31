@@ -578,6 +578,8 @@ A command line utility for creating and loading folder templates.
 - GitHub repository: <a href="https://github.com/BonnyAD9/makemake-rs">GitHub\
 </a>
 - Package: <a href="https://aur.archlinux.org/packages/makemake">AUR</a>
+- Documentation: <a href="https://github.com/BonnyAD9/makemake-rs/wiki">GitHub\
+ Wiki</a>
 `
     }
 };
