@@ -563,7 +563,24 @@ Rust library for fancy colored cli using ansi escape codes.
 - Package: <a href="https://crates.io/crates/termal">crates.io</a>
 `
     }
-}
+};
+
+let makemake_project = {
+    about: {
+        type: 'file',
+        value: `
+A command line utility for creating and loading folder templates.
+`
+    },
+    links: {
+        type: 'file',
+        value: `
+- GitHub repository: <a href="https://github.com/BonnyAD9/makemake-rs">GitHub\
+</a>
+- Package: <a href="https://aur.archlinux.org/packages/makemake">AUR</a>
+`
+    }
+};
 
 let list_projects = `\
 #!/usr/bin/jsh
@@ -571,6 +588,10 @@ echo
 echo TYPE_DARK | center 80 | style w bold
 cat type_dark/about | wrap 76 | center 72
 cat type_dark/links | center 72
+echo
+echo MAKEMAKE | center 80 | style w bold
+cat makemake/about | wrap 76 | center 72
+cat makemake/links | center 72
 echo
 echo TERMAL | center 80 | style w bold
 cat termal/about | wrap 76 | center 72
@@ -724,6 +745,10 @@ jinux.root.value = {
                             termal: {
                                 type: 'dir',
                                 value: termal_project,
+                            },
+                            makemake: {
+                                type: 'dir',
+                                value: makemake_project,
                             }
                         }
                     },
