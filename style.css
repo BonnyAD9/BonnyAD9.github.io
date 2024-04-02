@@ -17,21 +17,18 @@
     --dark-gray:    #777;
 }
 
-body {
-    margin: 0;
-    background-color: #101010;
-    color: #eee;
-    font-size: large;
-    overflow: hidden;
-}
-
 body::-webkit-scrollbar {
     display: none;
 }
 
 body {
+    margin: 0;
+    background-color: #101010;
+    color: #eee;
+    font-size: large;
+    overflow-x: hidden;
     -ms-overflow-style: none;
-    scrollbar-width: none;
+    scrollbar-width: 0;
 }
 
 .page-src {
