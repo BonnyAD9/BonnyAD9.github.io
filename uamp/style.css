@@ -10,3 +10,37 @@ html {
 .cons {
     list-style-type: "- ";
 }
+
+.effect-box {
+    width: 265px;
+    height: 265px;
+    margin: 20px;
+}
+
+.rng-letter {
+    background-color: #181818;
+    font-family: monospace;
+    line-break: anywhere;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    color: #555;
+}
+
+.rng-letter-inner {
+    /*box-shadow: inset 0 0 100px #000;*/
+    box-shadow:
+        inset 0 0 120px #000,
+        inset 0 0 80px #000,
+        inset 0 0 40px #000;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.rng-fg {
+    color: #5f5;
+}
