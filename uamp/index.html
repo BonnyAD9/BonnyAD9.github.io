@@ -6,18 +6,58 @@
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <p>
-            <div class="rng-letter effect-box">
-                Hello World
+        <div id="header">
+            <div id="header-abbr">
+                <div class="abbr">
+                    <h1>U</h1>
+                    <h2>Universal</h2>
+                </div>
+                <div class="abbr">
+                    <h1>A</h1>
+                    <h2>Advanced</h2>
+                </div>
+                <div class="abbr">
+                    <h1>M</h1>
+                    <h2>Music</h2>
+                </div>
+                <div class="abbr">
+                    <h1>P</h1>
+                    <h2>Player</h2>
+                </div>
             </div>
-        </p>
-        <h1>Uamp</h1>
-        <h2>Universal Advanced Music Player</h2>
-        <p>
-            Uamp is minimal music player that doesn't get in your way. It is
-            fast, reliable and powerful.
-        </p>
-        <h3>Why does Uamp exist?</h3>
+            <div id="header-fill"></div>
+            <p id="description">
+                Uamp is minimal music player that doesn't get in your way. It is
+                fast, reliable and powerful.
+            </p>
+            <div id="navigation">
+                <div
+                    class="nav-btn rng-letter"
+                    onclick="location.href = '#why-x'"
+                >Why does uamp exist</div>
+                <div
+                    class="nav-btn rng-letter"
+                    onclick="location.href = '#why-u'"
+                >Why sould you use uamp?</div>
+                <div
+                    class="nav-btn rng-letter"
+                    onclick="location.href = '#no-ui'"
+                >NO UI</div>
+                <div
+                    class="nav-btn rng-letter"
+                    onclick="location.href = '#for-u'"
+                >Uamp is for you</div>
+                <div
+                    class="nav-btn rng-letter"
+                    onclick="location.href = '#for-m'"
+                >Uamp is NOT for you</div>
+                <div
+                    class="nav-btn rng-letter"
+                    onclick="location.href = '#alt'"
+                >Competition</div>
+            </div>
+        </div>
+        <h3 id="why-x">Why does Uamp exist?</h3>
         I was used to using winamp on windows. When I transitioned to Linux, I
         couldn't find any music player that would satisfy my needs:
 
@@ -148,7 +188,7 @@
             pareg</a> as flexible command line argument parser (and parser in
             general).
         </p>
-        <h3>Why should you use Uamp?</h3>
+        <h3 id="why-u">Why should you use Uamp?</h3>
         <ul>
             <li>
                 Speed and efficiency. Uamp uses minimal system resources while
@@ -178,7 +218,7 @@
                 and general description and 5 for describing the documentation.
             </li>
         </ul>
-        <h3>NO UI?</h3>
+        <h3 id="no-ui">NO UI?</h3>
         <p>
             Lets address the elephant in the room. Uamp has no user interface.
             It is fully controled with commands from terminal. This was ment to
@@ -197,7 +237,7 @@
             future UI will be always optional (at compile time and of course at
             runtime).
         </p>
-        <h3>Uamp is for you if:</h3>
+        <h3 id="for-u">Uamp is for you if:</h3>
         <ul>
             <li>
                 You aren't afraid of terminal. (you will need to use it at
@@ -214,7 +254,7 @@
             <li>You use Linux. (I don't know of better player for Linux)</li>
             <li>You have local library of songs. (uamp plays local music)</li>
         </ul>
-        <h3>Uamp is NOT for you if:</h3>
+        <h3 id="for-m">Uamp is NOT for you if:</h3>
         <ul>
             <li>
                 You have fear of terminal that you are unwilling to overcome.
@@ -234,7 +274,7 @@
                 some streaming service. (uamp plays local music)
             </li>
         </ul>
-        <h3>Alternatives to Uamp (for which I remember my experience :)</h3>
+        <h3 id="alt">Alternatives to Uamp (for which I remember my experience :)</h3>
         <h4>
             <a href="https://www.strawberrymusicplayer.org/">Strawberry</a>
         </h4>

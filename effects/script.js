@@ -1,10 +1,5 @@
-window.addEventListener('resize', js_styles);
-js_styles();
-
-function js_styles() {
-    for (let e of document.getElementsByClassName("rng-letter")) {
-        rng_text_hover(e);
-    }
+for (let e of document.getElementsByClassName("rng-letter")) {
+    rng_text_hover(e);
 }
 
 /**
