@@ -1,4 +1,4 @@
-window.addEventListener('resize', js_styles);
+//window.addEventListener('resize', js_styles);
 js_styles();
 
 function js_styles() {
