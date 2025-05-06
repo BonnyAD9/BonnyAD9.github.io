@@ -157,162 +157,160 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="uamp"><a class="header" href="#uamp">uamp</a></h1>
-<p>Uamp is minimal music player that doesn't get in your way. It is fast, reliable
-and powerful.</p>
-<p>Uamp is fully open source with sources available at
-<a href="https://github.com/BonnyAD9/uamp">GitHub</a>. It is written in rust because I
-like rust and I like to write efficient and fast code.</p>
+<p>Uamp is a minimal music player that doesn't get in your way. It isfast,
+reliable, and powerful.</p>
+<p>Uamp is fully open source, with sources available at
+<a href="https://github.com/BonnyAD9/uamp">GitHub</a>. It is written in Rust because I
+like Rust and I like to write efficient and fast code.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="why-does-uamp-exist"><a class="header" href="#why-does-uamp-exist">Why does uamp exist?</a></h1>
-<p>I was used to using winamp on windows. When I transitioned to Linux, I couldn't
+<p>I was used to using Winamp on Windows. When I transitioned to Linux, I couldn't
 find any music player that would satisfy my needs:</p>
 <h3 id="speed"><a class="header" href="#speed">Speed</a></h3>
-<p>I need fast music player capable of managing large amounts of local songs (my
-library has over 3000 songs). Many existing music players weren't able to
-handle this large amount of songs. Uamp has no problem with this number of
-songs, and is made to delegate expensive operations to other threads so that it
-never becomes unresponsive.</p>
+<p>I need a fast music player capable of managing large amounts of local songs (my
+library has over 3000 songs). Many existing music players couldn't handle this
+large number of songs. UAMP has no problem with this number of songs, and I
+made it to delegate expensive operations to other threads so that it never
+becomes unresponsive.</p>
 <h3 id="global-keyboard-shortcuts"><a class="header" href="#global-keyboard-shortcuts">Global keyboard shortcuts</a></h3>
 <p>I'm used to using global keyboard shortcuts to control my music player. Many
-music players don't have global keyboard shortcuts or any alternative or the
-shortcuts don't work well. Uamp also doesn't have any global keyboard
-shortcuts, but it can be controled with CLI. This makes it very simple to
-create keyboard shortcuts for the required actions in your window manager (e.g.
-Kwin).</p>
+music players don't have global keyboard shortcuts or any alternative, or the
+shortcuts don't work well. Uamp has no global keyboard shortcuts, but users can
+control it with the CLI. The uamp CLI makes it very simple to create keyboard
+shortcuts for the required actions in your window manager (e.g., Kwin).</p>
 <h3 id="fade-playpause"><a class="header" href="#fade-playpause">Fade play/pause</a></h3>
-<p>Since I discovered this feature in winamp, I can't use play/puase without it.
-It is very unpleasant when you pause/play your playback and it just transitions
-with silence immidietely. This feature adds few milliseconds where the volume
-changes from the current to 0 in case of pause and from 0 to the current volume
-ensuring smooth transition between playback and silence. Uamp allows you to
-specify this fade duration and if you don't like it, you can just disable this
-feature.</p>
+<p>Since I discovered this feature in Winamp, I can't use play/pause without it.
+It is very unpleasant when you pause/play your playback, and it just
+transitions with silence immediately. This feature adds a few milliseconds
+where the volume changes from the current to 0 in case of pause and from 0 to
+the current volume, ensuring a smooth transition between playback and silence.
+Uamp allows you to specify this fade duration, and if you don't like it, you
+can disable this feature.</p>
 <h3 id="fine-control-over-low-volumes"><a class="header" href="#fine-control-over-low-volumes">Fine control over low volumes</a></h3>
-<p>It is very annoying if the volume controls are liner. I remember using music
-player where the volume I wanted was between 0 and 5 % but the controls jumped
-in change of 5 % making huge changes to ghe volume. And on the other end of the
-scale, difference between 80 % and 100 % was minimal. Ideal volume slider would
-be logarighmic, but this slider doesn't have good definition on finite range
-and so it would be very unintuitive to use. This is why I chose quadratic
-slider. This is simple yet good approximation of the logarithimc slider on
-finite volume range. This is why changes to low and high volumes in uamp feels
-to have much more consistant impact. Uamp also allows you to configure the
-volume jump, so you can set it to your liking.</p>
+<p>It is very annoying if the volume controls are linear. I remember using a music
+player where the volume I wanted was between 0 and 5 %, but the controls jumped
+by a change of 5 %, making huge changes to the volume. And on the other end of
+the scale, the difference between 80 % and 100 % was minimal. An ideal volume
+slider would be logarithmic, but this slider doesn't have a good definition on
+a finite range, and so it would be very unintuitive to use. I chose a quadratic
+slider. It is a simple yet good approximation of the logarithmic slider on a
+finite volume range. Thanks to the nonlinear volume slider, changes to low and
+high volumes in uamp have a much more consistent impact. Uamp also allows you
+to configure the volume jump so that you can set it to your liking.</p>
 <h3 id="endless-playback"><a class="header" href="#endless-playback">Endless playback</a></h3>
-<p>When I play music on background I usually play random mix of all of my songs.
-Many players make this operation quite hard or it is not implemented very well
-(it chooses random songs instead of using randomly mixed queue). In the end,
-every player has some way of achieving this. Uamp makes this very simple and
-goes further by automating the process of reshuffling the playlist when it
-finishes. Uamp has by default defined alias that will do exactly that:</p>
-<p><em>randomly shuffle all songs. If playlist ends, reshuffle the playlist and
-continue from start. If new songs are added to the library, shuffle them into
-the current playlist after the current song position.</em></p>
-<p>This is all done trough patemeters on playlist that allow define what will
-happen when the playlist ends and if and how new songs should be also added to
-the playlist.</p>
-<h3 id="returning-to-previous-queue"><a class="header" href="#returning-to-previous-queue">Returning to previous queue</a></h3>
-<p>Sometimes I want to listen to specific album. If I play this album, the current
-queue will be discarted. Uamp has stack of queues. You can play the specific
-album and have uamp continue with playing of the previous queue without
-modyfing the previous queue.</p>
-<h3 id="playing-audio-file-that-is-not-in-the-library"><a class="header" href="#playing-audio-file-that-is-not-in-the-library">Playing audio file that is not in the library</a></h3>
-<p>Sometimes I just want to play audio file that is not in my song library and I
-don't want to add it to the song library. I just want to play it now once. Uamp
-allows you to do that. If you play any audio file that is not in your library,
-uamp will pause the current playback, push the audio file as new queue and when
-it finishes playing, uamp will continue with playback of the previous queue.
-The previous queue will stay unmodified and the audio file will not be added to
-the library.</p>
+<p>When I play music in the background, I usually play a random mix of all of my
+songs. Many players make this operation quite hard, or it is not implemented
+very well (it chooses random songs instead of using a randomly mixed queue). In
+the end, every player has some way of achieving this. Uamp makes this very
+simple and goes further by automating the process of reshuffling the playlist
+when it finishes. Uamp has, by default, defined an alias that will do precisely
+that:</p>
+<p><em>Randomly shuffle all songs. If the playlist ends, reshuffle it and continue
+from the start. If new songs are added to the library, shuffle them into the
+current playlist after the current song position.</em></p>
+<p>This is done through parameters on a playlist that define what will happen when
+the playlist ends and if and how new songs should be added to the playlist.</p>
+<h3 id="returning-to-the-previous-queue"><a class="header" href="#returning-to-the-previous-queue">Returning to the previous queue</a></h3>
+<p>Sometimes I want to listen to a specific album. If I play this album, the
+current queue will be discarded. Uamp has a stack of queues. You can play a
+specific album and have uamp continue playing the previous queue without
+modifying it.</p>
+<h3 id="playing-an-audio-file-that-is-not-in-the-library"><a class="header" href="#playing-an-audio-file-that-is-not-in-the-library">Playing an audio file that is not in the library</a></h3>
+<p>Sometimes I want to play an audio file that is not in my song library, and I
+don't want to add it to the song library. I want to play it once. Uamp allows
+you to do that. If you play any audio file that is not in your library, uamp
+will pause the current playback and push the audio file to the new queue. When
+it finishes playing, uamp will continue with the playback of the previous
+queue. The previous queue will stay unmodified, and uamp will not add the audio
+file to the library.</p>
 <h3 id="stability-reliability"><a class="header" href="#stability-reliability">Stability, reliability</a></h3>
-<p>If there is any bug in uamp I can just fix it. I use uamp daily and if I
-encounter any issue, I just fix it. If the issue in any way prevents me from
-using uamp the way I want to, I just push new version of uamp with the fix
-right away.</p>
-<p>Some players stop the playback if there is any issue with playing specific
-song. Uamp will just log that there was issue, and silently continue to the
-next song.</p>
-<p>Some players dont't save their state when you forget to properly close them. If
-you just turn you PC off, they will forget all changes since they were open. If
-they for some reason crash, the state will be also reset. Uamp properly handles
-all exit signals and saves its state before exiting. Uamp also periodically
-saves any changes to its state so that if it would crash, the saved state is
-still quite recent.</p>
-<p>Some players for some reason have issues playing when other demanding task is
-running on the PC. One I was using was stuttering the audio when I was playing
-games. Since the begining of uamp, I never encountered any issue of that kind
-with uamp. Even if the CPU is running at 100 %, uamp still plays.</p>
+<p>If there is any bug in uamp, I can fix it. I use uamp daily, and if I encounter
+any issue, I fix it. If the issue prevents me from using uamp the way I want, I
+will push a new version of uamp with the fix immediately.</p>
+<p>Some players stop the playback if there is any issue with playing a specific
+song. Uamp will log that there was an issue and silently continue to the next
+song.</p>
+<p>Some players don't save their state when you forget to close them properly. If
+you turn your PC off, they will forget all changes since they were open. If the
+player, for some reason, crashes, it will also lose its state. Uamp correctly
+handles all exit signals and saves its state before exiting. Uamp also
+periodically saves any changes to its state so that if it crashes, the saved
+state is still relatively recent.</p>
+<p>Some players, for some reason, have issues playing when another demanding task
+is running on the PC. One time, I was using it and stuttering the audio while
+playing games. Since the beginning of uamp, I have never encountered any issue
+of that kind with uamp. Even if the CPU is running at 100 %, uamp still plays.</p>
 <h2 id="my-dream-project"><a class="header" href="#my-dream-project">My dream project</a></h2>
-<p>Music player is also my dream project. Uamp is the realization of that dream
-project. When I was using winamp, I had no reason to create fully functional
-music player but after I started using Linux, I had to make myself usable music
-player.</p>
-<p>In order to create uamp I had to make several rust libraries (crates) because
-the existing ones weren't good enough. This includes
+<p>A music player is also my dream project. Uamp is the realization of that dream
+project. When I was using Winamp, I had no reason to create a fully functional
+music player, but after I started using Linux, I had to make myself a usable
+music player.</p>
+<p>To create uamp, I had to make several Rust libraries (crates) because the
+existing ones weren't good enough. The libraries include
 <a href="https://github.com/BonnyAD9/raplay">raplay</a> for playing audio,
 <a href="https://github.com/BonnyAD9/termal">termal</a> for colored printing to terminal
-(and other terminal manipulation) and
-<a href="https://github.com/BonnyAD9/pareg">pareg</a> as flexible command line argument
+(and other terminal manipulation), and
+<a href="https://github.com/BonnyAD9/pareg">pareg</a> as a flexible command line argument
 parser (and parser in general).</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="why-should-you-use-uamp"><a class="header" href="#why-should-you-use-uamp">Why should you use uamp?</a></h1>
 <h3 id="speed-and-efficiency"><a class="header" href="#speed-and-efficiency">Speed and efficiency</a></h3>
 <p>Uamp uses minimal system resources while having no problem managing huge
 amounts of songs.</p>
 <h3 id="simplicity"><a class="header" href="#simplicity">Simplicity</a></h3>
-<p>This is not simplicity of use (although the CLI is friendly and well
-documented). Uamp is simple in principle. Music player should play music. That
-is what uamp does and does that very well.</p>
+<p>By simplicity, I don't mean it's simple to use (although the CLI is friendly
+and well documented). Uamp is simple in principle. The music player should play
+music. That is what uamp does and does that very well.</p>
 <h3 id="advanced-features"><a class="header" href="#advanced-features">Advanced features</a></h3>
-<p>Uamp has many advanced features that will allow you to enjoy listening to your
+<p>Uamp has many advanced features that allow you to enjoy listening to your
 music. These features include gapless playback, fade play/pause, advanced queue
-(playlist) management (queue stack) and much more.</p>
+(playlist) management (queue stack), and more.</p>
 <h3 id="no-bloat"><a class="header" href="#no-bloat">No bloat</a></h3>
-<p>Uamp is single binary that is about 18 MiB. Once compiled, it doesn't depend on
-any other files except common system libraries.</p>
+<p>Uamp is a single binary that is about 18 MiB. Once compiled, it doesn't depend
+on other files except common system libraries.</p>
 <h3 id="documentation"><a class="header" href="#documentation">Documentation</a></h3>
 <p>Everything about uamp is well documented at multiple places. The complete basic
 CLI documentation is the help command. There are also two manual pages: 1 for
-the cli and general description and 5 for describing the documentation.</p>
+the CLI and general description, and 5 for describing the documentation.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="no-ui"><a class="header" href="#no-ui">NO UI?</a></h1>
-<p>Lets address the elephant in the room. Uamp has no user interface. It is fully
-controled with commands from terminal. This was ment to be only temporary
-change, but in the process I realized that I didn't miss the UI. Uamp is ready
-to play when my PC starts without me even knowing it. I have assigned global
-shortcuts to the important actions such as Play/Pause, Next, Previous, Volume
-Up and Down, ... and now I interact with the terminal interface only when I
-need to do some specific actions. Uamp runs fully in the background and
-consumes minimal resources (almost no CPU usage, no GPU usage, 10 - 15 MiB of
-RAM).</p>
-<p>In future I may add TUI or GUI, but this will never become necesity. Uamp will
-stay fully usable without UI, and the potential future UI will be always
-optional (at compile time and of course at runtime).</p>
+<p>Let's address the elephant in the room. Uamp has no user interface. It is fully
+controlled with commands from the terminal. This was meant to be only a
+temporary change, but in the process, I realized that I didn't miss the UI.
+Uamp is ready to play when my PC starts without me even knowing it. I have
+assigned global shortcuts to essential actions such as Play/Pause, Next,
+Previous, Volume Up and Down, and now I interact with the terminal interface
+only when I need to do specific actions. Uamp runs entirely in the background
+and consumes minimal resources (almost no CPU usage, no GPU usage, 10 - 15 MiB
+of RAM).</p>
+<p>I may add TUI or GUI in the future, but this will never become required. Uamp
+will stay fully usable without UI, and the potential future UI will always be
+optional (at compile time and runtime).</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="is-uamp-for-you"><a class="header" href="#is-uamp-for-you">Is uamp for you?</a></h1>
 <h2 id="uamp-is-for-you-if"><a class="header" href="#uamp-is-for-you-if">Uamp is for you if</a></h2>
 <ul>
-<li><strong>You aren't afraid of terminal.</strong> You will need to use it at least once.</li>
+<li><strong>You aren't afraid of a terminal.</strong> You will need to use it at least once.</li>
 <li><strong>You don't like bloat.</strong> Uamp is small and uses minimal resources.</li>
-<li><strong>You don't want your music player to get in your way.</strong> If uamp doesn't play,
-you don't know its there.</li>
-<li><strong>You use Linux.</strong> I don't know of better player for Linux.</li>
-<li><strong>You have local library of songs.</strong> Uamp plays local music.</li>
+<li><strong>You don't want your music player to get in your way.</strong> If uamp doesn't
+play, you don't know it's there.</li>
+<li><strong>You use Linux.</strong> I don't know of a better player for Linux.</li>
+<li><strong>You have a local library of songs.</strong> Uamp plays local music.</li>
 </ul>
 <h2 id="uamp-is-not-for-you-if"><a class="header" href="#uamp-is-not-for-you-if">Uamp is NOT for you if</a></h2>
 <ul>
-<li><strong>You have fear of terminal that you are unwilling to overcome.</strong> You will
-need to use terminal at least once.</li>
-<li><strong>You are not using Linux and uamp is not working properly.</strong> Support for
-other OSs is theoretical. I currently don't have any way to test anything on
-any other operating system.</li>
-<li><strong>You found a better music player for linux.</strong> Please let me know :)</li>
-<li><strong>You don't have local song library.</strong> You stream your songs from some
+<li><strong>You have a fear of a terminal that you are unwilling to overcome.</strong> You
+will need to use the terminal at least once.</li>
+<li><strong>You are not using Linux, and uamp is not working correctly.</strong> Support for
+other OSs is theoretical. I don't have any way to test anything on any other
+operating system.</li>
+<li><strong>You found a better music player for Linux.</strong> Please let me know :)</li>
+<li><strong>You don't have a local song library.</strong> You stream your songs from a
 streaming service. Uamp plays local music.</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="alternatives-to-uamp"><a class="header" href="#alternatives-to-uamp">Alternatives to uamp</a></h1>
-<p>Of course these comparisions are very opinionated but there aren't any better
-comparisions with uamp, because noone knows about it. If you like uamp,
-consider giving it star on</p>
+<p>Of course, these comparisons are opinionated, but there aren't any better
+comparisons with uamp, because no one knows about it. If you like uamp,
+consider giving it a star on <a href="https://github.com/BonnyAD9/uamp">GitHub</a>.</p>
 <h2 id="uamp-1"><a class="header" href="#uamp-1">Uamp</a></h2>
-<p>Uamp is not alternative to uamp :) but lets first address the pros and cons of
-uamp itself.</p>
+<p>Uamp is not an alternative to uamp :) but let's first address the pros and cons
+of uamp itself.</p>
 <h4 id="pros"><a class="header" href="#pros">Pros</a></h4>
 <ul>
 <li>Background blayback.</li>
@@ -320,13 +318,13 @@ uamp itself.</p>
 <li>Linux support.</li>
 <li>Fade play/pause.</li>
 <li>Many features, high configurability.</li>
-<li>It is simple to mix playlist.</li>
+<li>It is simple to mix a playlist.</li>
 <li>Has extensive CLI.</li>
-<li>It is simple to return to previous queue.</li>
+<li>It is simple to return to the previous queue.</li>
 <li>Open source.</li>
-<li>Saves its state, properly handles exit signals.</li>
-<li>Has no issues while other demanding task is running.</li>
-<li>Quickly loads library.</li>
+<li>Saves its state and correctly handles exit signals.</li>
+<li>Has no issues while another demanding task is running.</li>
+<li>Quickly loads the song library.</li>
 <li>You can automate stuff (endless playback).</li>
 </ul>
 <h4 id="cons"><a class="header" href="#cons">Cons</a></h4>
@@ -336,7 +334,8 @@ uamp itself.</p>
 this.)</li>
 </ul>
 <h2 id="other-players"><a class="header" href="#other-players">Other players</a></h2>
-<p>These are players that I know of and I have at least little experience with.</p>
+<p>These are music players that I know of and with which I have at least a little
+experience.</p>
 <h3 id="strawberry"><a class="header" href="#strawberry">Strawberry</a></h3>
 <p>I settled on this player before creating uamp. It does everything well enough,
 but also not quite well. It has its website
@@ -351,16 +350,16 @@ but also not quite well. It has its website
 </ul>
 <h4 id="cons-1"><a class="header" href="#cons-1">Cons</a></h4>
 <ul>
-<li>GUI is hard to navigate at first.</li>
+<li>The GUI is hard to navigate at first.</li>
 <li>Poor dark theme support.</li>
-<li>Takes long time to find how to mix playlist.</li>
-<li>Has problem with playback while other demanding task is running.</li>
-<li>Global keybord shortcuts sometimes don't work.</li>
-<li>It is complicated to save and recover previous queue.</li>
+<li>Finding out how to mix a playlist takes a long time.</li>
+<li>Has a problem with playback while another demanding task is running.</li>
+<li>Global keyboard shortcuts sometimes don't work.</li>
+<li>It isn't very easy to save and recover the previous queue.</li>
 <li>Doesn't handle exit signals.</li>
 </ul>
 <h3 id="rhythmbox"><a class="header" href="#rhythmbox">Rhythmbox</a></h3>
-<p>I used this on my gnome laptop for a short period, but it was somehow very
+<p>I used this on my Gnome laptop for a short period, but it was somehow very
 annoying to use. It has its website <a href="https://github.com/GNOME/rhythmbox">here</a>.</p>
 <h4 id="pros-2"><a class="header" href="#pros-2">Pros</a></h4>
 <ul>
@@ -369,29 +368,29 @@ annoying to use. It has its website <a href="https://github.com/GNOME/rhythmbox"
 <li>Global keyboard shortcuts.</li>
 <li>Handles large amounts of songs ok.</li>
 <li>Open source.</li>
-<li>Supports playback on background.</li>
-<li>At least minimal CLI for controlling running instance.</li>
+<li>Supports playback in the background.</li>
+<li>At least a minimal CLI can be used to control the running instance.</li>
 <li>Linux support.</li>
 </ul>
 <h4 id="cons-2"><a class="header" href="#cons-2">Cons</a></h4>
 <ul>
 <li>No fade play/pause.</li>
-<li>Gui is unintuituve and frustrating.</li>
+<li>GUI is unintuitive and frustrating.</li>
 <li>Takes forever to initially load all songs.</li>
-<li>Can't mix playlist? Its hard to find that option if it is there.</li>
-<li>I closed it, why it is still playing?</li>
-<li>No global keybord shortcuts (at least I couldn't find where to configure
+<li>Can't mix playlist? It's hard to find that option if it is there.</li>
+<li>I closed it. Why is it still playing?</li>
+<li>No global keyboard shortcuts (at least I couldn't find where to configure
 them).</li>
-<li>It is complicated to save and recover previous queue.</li>
-<li>Library sometimes unloads and has to be loaded again?</li>
+<li>It isn't very easy to save and recover the previous queue.</li>
+<li>The music library sometimes unloads and has to be loaded again.</li>
 </ul>
 <h4 id="winamp-legacy"><a class="header" href="#winamp-legacy">Winamp (legacy)</a></h4>
-<p>Winamp was the best player (apart from uamp) that I ever used on desktop. It
-has many features and on windows everything works well. But now that I'm used
-to some new features unique to uamp, I'm not sure that I would be able to go
-back to winamp and be completely happy. Winamp has its website
-<a href="https://winamp.com/">here</a>. I don't speak about the new garbage but about the
-old legacy winamp.</p>
+<p>Winamp was the best player (apart from uamp) that I ever used on the desktop.
+It has many features, and on Windows, everything works well. But now that I'm
+used to some new features unique to uamp, I'm not sure I could go back to
+Winamp and be completely happy. Winamp has its website
+<a href="https://winamp.com/">here</a>. I don't speak about the new garbage, but the old
+legacy Winamp.</p>
 <h4 id="pros-3"><a class="header" href="#pros-3">Pros</a></h4>
 <ul>
 <li>GUI.</li>
@@ -401,45 +400,43 @@ old legacy winamp.</p>
 <li>Windows support.</li>
 <li>Fade play/pause.</li>
 <li>High customizability.</li>
-<li>It is simple to mix playlist.</li>
+<li>It is simple to mix a playlist.</li>
 </ul>
 <h4 id="cons-3"><a class="header" href="#cons-3">Cons</a></h4>
 <ul>
 <li>No background playback.</li>
 <li>Unmaintained.</li>
-<li>Closed/questionable licence.</li>
-<li>GUI is complicated at first.</li>
-<li>It is complicated to save and recover previous queue.</li>
-<li>No linux support.</li>
-<li>When crashes, all state is lost.</li>
+<li>Closed/questionable license.</li>
+<li>The GUI is complicated at first.</li>
+<li>It isn't very easy to save and recover the previous queue.</li>
+<li>No Linux support.</li>
+<li>When it crashes, all state is lost.</li>
 </ul>
 <h3 id="elisa"><a class="header" href="#elisa">Elisa</a></h3>
-<p>I wanted to use this player because I use KDE plasma and I like to use apps
-from the KDE ecosystem. But it was unable to handle my large library of songs.
-It has its website <a href="https://apps.kde.org/elisa/">here</a>.</p>
+<p>I wanted to use this player because I use KDE Plasma and like using apps from
+the KDE ecosystem. But it was unable to handle my large library of songs. It
+has its website <a href="https://apps.kde.org/elisa/">here</a>.</p>
 <h4 id="pros-4"><a class="header" href="#pros-4">Pros</a></h4>
 <ul>
 <li>GUI.</li>
 <li>Dark theme support.</li>
-<li>Gui looks well and seems to be intuitive.</li>
+<li>GUI looks good and seems to be intuitive.</li>
 </ul>
 <h4 id="cons-4"><a class="header" href="#cons-4">Cons</a></h4>
 <ul>
 <li>Cannot handle large amounts of songs.</li>
 </ul>
 <h3 id="xmms"><a class="header" href="#xmms">XMMS</a></h3>
-<p>Tries to be winamp, but just can't do anything. Maybe this is my feeling only
-because I'm used to the winamp modern skin which is not available here. It is
-old and unmaintained. I couldn't even find if it has any wiebsite.</p>
+<p>Tries to be Winamp, but can't do anything. Maybe this is my feeling only
+because I'm used to the Winamp modern skin, which is unavailable here. It is
+old and unmaintained. I couldn't even find out if it has a website.</p>
 <h3 id="audacious"><a class="header" href="#audacious">Audacious</a></h3>
-<p>Looks good. I can't remember what were my problems with it. Maybe the GUI was
-so unintuitive that it scared me so I didn't try hard enough to customize it
-enough to suit me. It has its website
-<a href="https://audacious-media-player.org/">here</a>.</p>
-<div style="break-before: page; page-break-before: always;"></div><p>The documentation here is under construction. For now please refer to
-manual pages <code>uamp(1)</code> and <code>uamp(5)</code> or the help available with <code>uamp -h</code> or
-readme at <a href="https://github.com/BonnyAD9/uamp">GitHub</a> for tips on how to get
-started.</p>
+<p>Looks good. I can't remember what my problems with it were. Maybe the GUI was
+so unintuitive that it scared me, so I didn't try hard enough to customize it
+to suit me. It has its website <a href="https://audacious-media-player.org/">here</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><p>The documentation here is under construction. For now, please refer to manual
+pages <code>uamp(1)</code> and <code>uamp(5)</code> or the help available with <code>uamp -h</code> or Readme at
+<a href="https://github.com/BonnyAD9/uamp">GitHub</a> for tips on how to get started.</p>
 
                     </main>
 

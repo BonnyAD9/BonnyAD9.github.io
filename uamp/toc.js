@@ -10,7 +10,7 @@ class MDBookSidebarScrollbox extends HTMLElement {
     connectedCallback() {
         this.innerHTML = '<ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded affix "><li class="part-title">About</li><li class="chapter-item expanded "><a href="about/why_exists.html"><strong aria-hidden="true">2.</strong> Why does uamp exist?</a></li><li class="chapter-item expanded "><a href="about/why_use.html"><strong aria-hidden="true">3.</strong> Why sould you use uamp?</a></li><li class="chapter-item expanded "><a href="about/no_ui.html"><strong aria-hidden="true">4.</strong> NO UI?</a></li><li class="chapter-item expanded "><a href="about/is_uamp_for_you.html"><strong aria-hidden="true">5.</strong> Is uamp for you?</a></li><li class="chapter-item expanded "><a href="about/alternatives.html"><strong aria-hidden="true">6.</strong> Alternatives to uamp</a></li><li class="chapter-item expanded affix "><li class="part-title">Documentation</li><li class="chapter-item expanded "><a href="documentation/intro.html"><strong aria-hidden="true">7.</strong> Introduction</a></li></ol>';
         // Set the current, active page, and reveal it if it's hidden
-        let current_page = document.location.href.toString().split("#")[0];
+        let current_page = document.location.href.toString().split("#")[0].split("?")[0];
         if (current_page.endsWith("/")) {
             current_page += "index.html";
         }
